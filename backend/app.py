@@ -108,14 +108,10 @@ def long_running_task(timeout_seconds=2700):
         return wrapper
     return decorator
 
-# CORS 설정 (프론트엔드 포트 기반)
+# CORS 설정 (모든 출처 허용 - 배포 환경에서도 작동)
 CORS(app, resources={
     r"/api/*": {
-        "origins": [
-            f"http://localhost:{FRONTEND_PORT}",
-            f"http://127.0.0.1:{FRONTEND_PORT}",
-            "http://localhost:3000",  # 개발 환경용 추가 포트
-        ],
+        "origins": "*",  # 모든 출처 허용 (프론트엔드와 동일 origin이므로 문제 없음)
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "expose_headers": ["Content-Type"],
@@ -464,7 +460,7 @@ def index():
             <h1>유사호출 감시 시뮬레이션 시스템 API 서버</h1>
             <p>이곳은 백엔드 API 서버입니다.</p>
             <p>웹 인터페이스를 사용하려면 아래 버튼을 클릭하세요.</p>
-            <a href="http://localhost:8000">대시보드로 이동 (프론트엔드)</a>
+            <a href="/" onclick="window.location.href = window.location.origin + '/'; return false;">대시보드로 이동 (프론트엔드)</a>
         </div>
     </body>
     </html>

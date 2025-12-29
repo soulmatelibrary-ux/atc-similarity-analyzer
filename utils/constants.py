@@ -141,8 +141,9 @@ LOG_FILE = 'logs/app.log'
 API_PORT = 8888
 FRONTEND_PORT = 8000
 
-# API 설정
-API_BASE_URL = f'http://localhost:{API_PORT}'
+# API 설정 (동적 설정 - 환경에 따라 자동 조정)
+# 로컬: http://localhost:8888, Render: https://atc-similarity-analyzer.onrender.com
+API_BASE_URL = os.getenv('API_BASE_URL', f'http://localhost:{API_PORT}')
 
 # Debug Mode
 import os
