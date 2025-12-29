@@ -438,33 +438,52 @@ def favicon():
     return '', 204  # 204 No Content
 
 
+@app.route('/<path:filename>')
+def serve_frontend(filename):
+    """프론트엔드 정적 파일 제공"""
+    frontend_dir = os.path.join(PROJECT_DIR, 'frontend')
+    file_path = os.path.join(frontend_dir, filename)
+
+    # 경로 보안 확인 (디렉토리 이상 이동 방지)
+    if not os.path.abspath(file_path).startswith(os.path.abspath(frontend_dir)):
+        return {"error": "Invalid path"}, 403
+
+    if os.path.isfile(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    return {"error": f"File not found: {filename}"}, 404
+
+
 @app.route('/')
+@app.route('/index.html')
 def index():
-    """루트 경로 - 프론트엔드 안내"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>유사호출 감시 시뮬레이션 시스템 백엔드</title>
-        <style>
-            body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            h1 { color: #2c3e50; }
-            p { color: #7f8c8d; }
-            a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-            a:hover { background-color: #2980b9; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>유사호출 감시 시뮬레이션 시스템 API 서버</h1>
-            <p>이곳은 백엔드 API 서버입니다.</p>
-            <p>웹 인터페이스를 사용하려면 아래 버튼을 클릭하세요.</p>
-            <a href="/" onclick="window.location.href = window.location.origin + '/'; return false;">대시보드로 이동 (프론트엔드)</a>
-        </div>
-    </body>
-    </html>
-    """
+    """루트 경로 - 프론트엔드 제공"""
+    frontend_path = os.path.join(PROJECT_DIR, 'frontend', 'index.html')
+    try:
+        with open(frontend_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error(f"Frontend file not found: {frontend_path}")
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>오류</title>
+            <style>
+                body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                h1 { color: #e74c3c; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>프론트엔드 파일을 찾을 수 없습니다</h1>
+                <p>Frontend 파일 경로: """ + frontend_path + """</p>
+            </div>
+        </body>
+        </html>
+        """
 
 
 # ============================================================================
