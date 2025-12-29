@@ -90,7 +90,9 @@ const AuthManager = (() => {
                 lockApp('접속을 위해 로그인하세요.');
             }
         } catch (error) {
-            lockApp('세션을 확인할 수 없습니다. 다시 로그인해주세요.');
+            // API 오류 시 로그인 화면 표시
+            console.warn('Session check failed:', error.message);
+            lockApp('접속을 위해 로그인하세요.');
         }
     }
 
