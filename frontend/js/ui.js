@@ -3273,7 +3273,7 @@ async function handleCLIRun() {
         formData.append('reset_db', 'true'); // DB 초기화
 
         // API 호출
-        const response = await fetch('http://localhost:8888/api/simulation/run-cli', {
+        const response = await fetch(`${window.location.origin}/api/simulation/run-cli`, {
             method: 'POST',
             body: formData
         });
@@ -3324,7 +3324,7 @@ async function handleCLIResetDB() {
     showMessage(statusDiv, '초기화 중...', 'loading');
 
     try {
-        const response = await fetch('http://localhost:8888/api/simulation/reset-db', {
+        const response = await fetch(`${window.location.origin}/api/simulation/reset-db`, {
             method: 'POST'
         });
 
@@ -4306,7 +4306,7 @@ async function showCsvTimeEstimate(recordCount) {
     if (!csvStatus) return;
 
     try {
-        const response = await fetch(`http://localhost:8888/api/processing/time-prediction?record_count=${recordCount}`);
+        const response = await fetch(`${window.location.origin}/api/processing/time-prediction?record_count=${recordCount}`);
         const result = await response.json();
 
         if (result.status === 'success') {
