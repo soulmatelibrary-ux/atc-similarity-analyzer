@@ -2928,10 +2928,11 @@ app.register_blueprint(admin_license_bp)
 # ============================================================================
 
 if __name__ == '__main__':
-    logger.info(f"Flask 앱 시작... (포트: {API_PORT}, DEBUG: {DEBUG})")
+    port = int(os.environ.get('PORT', API_PORT))
+    logger.info(f"Flask 앱 시작... (포트: {port}, DEBUG: {DEBUG})")
     app.run(
-        host='127.0.0.1',
-        port=API_PORT,
+        host='0.0.0.0',
+        port=port,
         debug=DEBUG,
-        use_reloader=True
+        use_reloader=False
     )
