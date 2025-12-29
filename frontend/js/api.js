@@ -2,12 +2,10 @@
  * API 클라이언트 - Flask 백엔드와 통신
  */
 
-// API 베이스 URL 동적 설정 (프로토콜과 호스트는 현재 페이지와 같음, 포트는 8888)
+// API 베이스 URL 동적 설정 (프로토콜, 호스트, 포트 모두 현재 페이지와 동일)
 const API_BASE_URL = (() => {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const port = 8888; // Flask 백엔드 포트
-    return `${protocol}//${hostname}:${port}/api`;
+    // 현재 페이지의 origin 사용 (로컬: http://localhost:8888, Render: https://atc-similarity-analyzer.onrender.com)
+    return `${window.location.origin}/api`;
 })();
 
 /**
