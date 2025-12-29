@@ -1,3 +1,5 @@
+import os
+
 # 유사도 레벨 정의 (v2.1) - 점수 범위 기반
 SIMILARITY_LEVELS = {
     # LEVEL 5 (고위험 - Critical: 90~100점)
@@ -146,7 +148,6 @@ FRONTEND_PORT = 8000
 API_BASE_URL = os.getenv('API_BASE_URL', f'http://localhost:{API_PORT}')
 
 # Debug Mode
-import os
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 # 애플리케이션
