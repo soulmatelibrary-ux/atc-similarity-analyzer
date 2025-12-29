@@ -1,0 +1,307 @@
+<div class="test-tab-container animation-fade-in">
+    <div class="view-header" style="margin-bottom: 20px;">
+        <div class="view-title">
+            <i class="fas fa-vial"></i>
+            <h2 style="margin: 0;">비행계획서 모델링 테스트</h2>
+        </div>
+        <p class="view-description" style="margin: 8px 0 0 0;">비행계획서를 입력하여 지점별 통과시간 및 섹터 진입/진출 시간을 실시간으로 계산합니다.</p>
+    </div>
+
+    <div class="test-layout">
+        <!-- 입력 영역 -->
+        <div class="test-input-section card">
+            <div class="card-header">
+                <h3><i class="fas fa-edit"></i> 비행계획서 입력</h3>
+                <button id="test-clear-btn" class="btn btn-secondary btn-sm">초기화</button>
+            </div>
+            <div class="card-body">
+                <form id="test-flight-form">
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="test-callsign">콜사인 (Callsign)</label>
+                            <input type="text" id="test-callsign" class="form-control" placeholder="예: KAL123" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="test-aircraft-type">기종 (ICAO)</label>
+                            <input type="text" id="test-aircraft-type" class="form-control" placeholder="예: B77W">
+                            <small class="form-text text-muted">등록된 ICAO 기종 코드를 입력하면 기본 성능을 사용합니다.</small>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="test-speed">속도 (Speed)</label>
+                            <input type="text" id="test-speed" class="form-control" placeholder="예: K0850, N0480"
+                                value="K0850">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="test-altitude">고도 (Level)</label>
+                            <input type="text" id="test-altitude" class="form-control" placeholder="예: 370, F370"
+                                value="370">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="test-dept">출발지 (Dept)</label>
+                            <input type="text" id="test-dept" class="form-control" placeholder="예: RKSI" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="test-dest">도착지 (Dest)</label>
+                            <input type="text" id="test-dest" class="form-control" placeholder="예: VHHH" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="test-eobd">비행날짜 (EOBD)</label>
+                            <input type="date" id="test-eobd" class="form-control">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="test-eobt">출발시간 (EOBT)</label>
+                            <input type="time" id="test-eobt" class="form-control" value="00:00">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="test-route">항로 (Route)</label>
+                        <textarea id="test-route" class="form-control" rows="3"
+                            placeholder="예: LAMEN A593 SADLI Y590 ELGEP Y722 OLMEN" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="test-eet">EET (Estimated Elapsed Time)</label>
+                        <input type="text" id="test-eet" class="form-control" placeholder="예: RKRR0015">
+                        <small class="form-text text-muted">도착/통과 항공편의 경우 RKRR 진입 시간을 위해 필요합니다.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="test-info-cn">INFO_CN (Optional)</label>
+                        <textarea id="test-info-cn" class="form-control" rows="2"
+                            placeholder="DOF/241225 EET/RKRR0015 ..."></textarea>
+                    </div>
+
+                    <button type="submit" id="test-calculate-btn" class="btn btn-primary btn-block">
+                        <i class="fas fa-calculator"></i> 계산하기
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 결과 영역 -->
+        <div class="test-result-section">
+            <!-- 섹터 정보 -->
+            <div class="card result-card mb-4" id="test-sector-card" style="display: none;">
+                <div class="card-header bg-success text-white">
+                    <h3><i class="fas fa-layer-group"></i> 섹터 통과 정보</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="test-sector-table">
+                            <thead>
+                                <tr>
+                                    <th>섹터명</th>
+                                    <th>진입 시간</th>
+                                    <th>진출 시간</th>
+                                    <th>체류 시간</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 웨이포인트 정보 -->
+            <div class="card result-card" id="test-waypoint-card" style="display: none;">
+                <div class="card-header bg-info text-white">
+                    <h3><i class="fas fa-map-marker-alt"></i> 지점별 통과 시간</h3>
+                </div>
+                <div class="card-body">
+                    <div class="route-expansion-box mb-3">
+                        <strong>확장 경로:</strong> <span id="test-route-expansion" class="text-muted"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="test-waypoint-table">
+                            <thead>
+                                <tr>
+                                    <th>순번</th>
+                                    <th>지점명</th>
+                                    <th>통과 시간</th>
+                                    <th>좌표 (Lat, Lon)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 초기 상태 메시지 -->
+            <div id="test-empty-state" class="empty-state">
+                <i class="fas fa-calculator fa-4x"></i>
+                <p>비행계획서를 입력하고 '계산하기' 버튼을 눌러주세요.</p>
+            </div>
+
+            <!-- 로딩 상태 -->
+            <div id="test-loading" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p>계산 중...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .test-tab-container {
+        padding: 20px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-self: flex-start;
+    }
+
+    .view-header {
+        margin-bottom: 20px;
+    }
+
+    .view-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    .view-title h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .view-description {
+        margin: 0;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .test-layout {
+        display: grid;
+        grid-template-columns: 400px 1fr;
+        gap: 20px;
+        width: 100%;
+        align-items: start;
+    }
+
+    .test-result-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    @media (max-width: 1000px) {
+        .test-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: none;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        outline: none;
+    }
+
+    .btn-block {
+        width: 100%;
+        padding: 12px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #ccc;
+        background: #fdfdfd;
+        border: 2px dashed #eee;
+        border-radius: 12px;
+    }
+
+    .empty-state i {
+        margin-bottom: 15px;
+    }
+    
+    .empty-state p {
+        margin: 0;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
+    .route-expansion-box {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #3498db;
+        font-size: 0.9rem;
+    }
+
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>

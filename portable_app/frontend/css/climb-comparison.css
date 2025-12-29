@@ -1,0 +1,382 @@
+/**
+ * 고도 상승 계산 비교 UI 스타일
+ */
+
+/* ===== 모달 스타일 ===== */
+.climb-comparison-modal {
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.climb-comparison-modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+/* ===== 항공편 정보 섹션 ===== */
+.flight-info-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.flight-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-item .value {
+    font-size: 16px;
+    color: #1a5490;
+    font-weight: 500;
+}
+
+/* ===== 탭 스타일 ===== */
+.climb-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 0;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tab-button:hover {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.tab-button.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+    background: rgba(52, 152, 219, 0.08);
+}
+
+/* ===== 탭 콘텐츠 ===== */
+.tab-content {
+    min-height: 400px;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ===== 고도 차트 ===== */
+#altitudeChart {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ===== 비교 테이블 ===== */
+.comparison-table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.comparison-table thead {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.comparison-table thead th {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #34495e;
+}
+
+.comparison-table thead th.method-a {
+    background: rgba(255, 107, 107, 0.1);
+    color: #c0392b;
+}
+
+.comparison-table thead th.method-b {
+    background: rgba(78, 205, 196, 0.1);
+    color: #16a085;
+}
+
+.comparison-table tbody tr {
+    border-bottom: 1px solid #ecf0f1;
+    transition: background-color 0.2s ease;
+}
+
+.comparison-table tbody tr:hover {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.comparison-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.comparison-table td {
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.comparison-table td:nth-child(3),
+.comparison-table td:nth-child(4) {
+    background: rgba(255, 107, 107, 0.02);
+    color: #c0392b;
+}
+
+.comparison-table td:nth-child(5),
+.comparison-table td:nth-child(6) {
+    background: rgba(78, 205, 196, 0.02);
+    color: #16a085;
+}
+
+.comparison-table td.time-diff,
+.comparison-table td.alt-diff {
+    font-weight: 600;
+    text-align: center;
+}
+
+.comparison-table td.time-diff.high-diff,
+.comparison-table td.alt-diff.high-diff {
+    background: rgba(231, 76, 60, 0.2);
+    color: #c0392b;
+}
+
+/* ===== 통계 섹션 ===== */
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border-top: 4px solid #3498db;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:nth-child(2) {
+    border-top-color: #2ecc71;
+}
+
+.stat-card:nth-child(3) {
+    border-top-color: #e74c3c;
+}
+
+.stat-card:nth-child(4) {
+    border-top-color: #f39c12;
+}
+
+.stat-card:nth-child(5) {
+    border-top-color: #9b59b6;
+}
+
+.stat-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-unit {
+    font-size: 12px;
+    color: #95a5a6;
+    font-weight: 500;
+}
+
+.statistics-interpretation {
+    background: #ecf0f1;
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.statistics-interpretation h4 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.statistics-interpretation ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.statistics-interpretation li {
+    margin: 8px 0;
+    color: #34495e;
+    line-height: 1.6;
+}
+
+.statistics-interpretation strong {
+    color: #2c3e50;
+}
+
+/* ===== 데이터 없음 상태 ===== */
+.no-data {
+    text-align: center;
+    padding: 40px 20px;
+    color: #95a5a6;
+    font-size: 14px;
+}
+
+/* ===== 비교 버튼 ===== */
+.btn-climb-comparison {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-climb-comparison:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
+}
+
+.btn-climb-comparison:active {
+    transform: translateY(0);
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 1024px) {
+    .climb-comparison-modal {
+        padding: 20px;
+    }
+
+    .flight-info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .comparison-table {
+        font-size: 11px;
+    }
+
+    .comparison-table td {
+        padding: 8px 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    .climb-comparison-modal {
+        max-width: 100%;
+        max-height: 100%;
+        padding: 15px;
+    }
+
+    .climb-tabs {
+        overflow-x: auto;
+    }
+
+    .tab-button {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+
+    .flight-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .comparison-table {
+        font-size: 10px;
+    }
+
+    .comparison-table td {
+        padding: 6px 4px;
+    }
+}

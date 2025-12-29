@@ -1,0 +1,383 @@
+/* ============================================================================
+   모델링 테스트 탭 스타일
+   ============================================================================ */
+
+.modeling-test-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   입력 폼 섹션
+   ============================================================================ */
+
+.modeling-test-input {
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.modeling-test-input h2 {
+    margin-top: 0;
+    color: #1f2937;
+    font-size: 18px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: #111827;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn-lg {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* ============================================================================
+   결과 섹션
+   ============================================================================ */
+
+.modeling-test-result {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
+}
+
+.modeling-test-result h2 {
+    margin-top: 0;
+    color: #1f2937;
+    font-size: 18px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.modeling-test-result h3 {
+    color: #374151;
+    font-size: 15px;
+    margin-top: 25px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   상태 메시지
+   ============================================================================ */
+
+#modeling-test-status {
+    padding: 12px 15px;
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+#modeling-test-status p {
+    margin: 0;
+    color: #92400e;
+    font-size: 13px;
+}
+
+/* ============================================================================
+   정보 카드
+   ============================================================================ */
+
+.info-card {
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.info-item {
+    background: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.info-item .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-item .value {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    word-break: break-word;
+}
+
+/* ============================================================================
+   고도 상승 분석
+   ============================================================================ */
+
+.climb-analysis-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.analysis-item {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.analysis-item h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 2px solid #fbbf24;
+    padding-bottom: 8px;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 12px;
+}
+
+.metric:last-child {
+    border-bottom: none;
+}
+
+.metric .label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.metric .value {
+    color: #dc2626;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ============================================================================
+   경유점 테이블
+   ============================================================================ */
+
+.waypoints-table {
+    margin-top: 20px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.waypoints-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.waypoints-table thead {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.waypoints-table thead th {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #1f2937;
+}
+
+.waypoints-table tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.waypoints-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.waypoints-table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.waypoints-table tbody td {
+    padding: 10px 12px;
+    color: #374151;
+}
+
+.waypoints-table tbody td:nth-child(4) {
+    font-weight: 600;
+    color: #dc2626;
+}
+
+.waypoints-table tbody td:nth-child(5) {
+    text-align: center;
+}
+
+.waypoints-table .climbing {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.waypoints-table .cruising {
+    color: #059669;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   로딩 상태
+   ============================================================================ */
+
+#modeling-loading {
+    padding: 40px 20px;
+}
+
+#modeling-loading i {
+    font-size: 32px;
+    color: #3498db;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   반응형 디자인
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+    .modeling-test-container {
+        grid-template-columns: 1fr;
+    }
+
+    .modeling-test-result {
+        max-height: none;
+    }
+
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .modeling-test-container {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .modeling-test-input,
+    .modeling-test-result {
+        padding: 15px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .waypoints-table {
+        font-size: 11px;
+    }
+
+    .waypoints-table th,
+    .waypoints-table td {
+        padding: 8px 6px;
+    }
+
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}

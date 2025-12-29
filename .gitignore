@@ -1,0 +1,311 @@
+################################
+# 1. PYTHON 관련
+################################
+
+# 가상환경
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.local
+.env.*.local
+
+# Python 캐시 및 컴파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# virtualenv
+ENV/
+env.bak/
+venv.bak/
+
+################################
+# 2. 데이터베이스 (⚠️ 매우 민감)
+################################
+
+# SQLite 데이터베이스
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# 데이터베이스 백업
+database/.backups/
+database/backups/
+*.bak
+*.backup
+
+# 테스트 데이터베이스
+tests/fixtures/*.db
+tests/fixtures/*.sqlite
+
+################################
+# 3. 로그 및 임시 파일
+################################
+
+# 로그 파일
+logs/
+*.log
+*.log.*
+*.pot
+
+# 임시 폴더
+temp/
+tmp/
+.tmp/
+cache/
+.cache/
+
+# 에디터 임시 파일
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+################################
+# 4. 업로드 및 사용자 데이터
+################################
+
+# 업로드 폴더 (사용자가 올린 파일)
+uploads/
+downloads/
+data/
+user_data/
+
+# 테스트 데이터
+*.csv.backup
+test.csv
+test_upload.csv
+test_*.csv
+
+################################
+# 5. IDE 및 에디터
+################################
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+################################
+# 6. 백업 파일
+################################
+
+# 개발 백업
+frontend/backup/
+backend/backup/
+*.backup
+*.bak
+*_backup
+*_old
+.backups/
+
+# 버전 관리 백업
+*.orig
+
+################################
+# 7. Node.js (사용하는 경우)
+################################
+
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+################################
+# 8. 시스템 파일
+################################
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+Thumbs.db
+.directory
+.Trash-*
+
+################################
+# 9. 빌드 및 배포
+################################
+
+*.egg-info/
+dist/
+build/
+*.tar.gz
+*.zip
+
+# Docker
+.dockerignore
+
+################################
+# 10. 설정 및 민감 정보
+################################
+
+# 환경 설정 (절대로 커밋하지 않기!)
+.env
+.env.local
+.env.*.local
+config.ini
+secrets.json
+credentials.json
+
+# API 키 및 토큰
+*.key
+*.pem
+*.p12
+*.pfx
+
+# 데이터베이스 연결 정보
+database_config.py
+
+################################
+# 11. 프로젝트 특화
+################################
+
+# Claude Code 설정 (개인용)
+.claude/
+
+# Portable app 빌드
+portable_app/build/
+portable_app/dist/
+portable_app/*.spec
+
+# 테스트 아티팩트
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# 업로드 진행 상태 (임시 파일)
+.uploads_progress/
+
+################################
+# 12. 대용량 파일
+################################
+
+# CSV/데이터 파일 (10MB 이상)
+*.csv
+!sample_data.csv
+!test_data.csv
+
+# 미디어 파일
+*.mp4
+*.avi
+*.mov
+*.wmv
+
+# 압축 파일
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+################################
+# 13. IDE 생성 파일
+################################
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+################################
+# 14. 특정 포트 설정 (Git Actions 등)
+################################
+
+# 포트 잠금 파일
+*.lock
+.serverlock
+
+# PID 파일
+*.pid
+
+################################
+# 15. 프로덕션 데이터 (필수!)
+################################
+
+# ⚠️ 실제 운영 데이터는 절대 커밋 금지
+similarity_detector_prod.db
+*.prod.db
+production_data/
+
+# 사용자 업로드 데이터
+user_uploads/
+user_data/

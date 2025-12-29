@@ -1,0 +1,26 @@
+
+--- DEBUG: GIA878 ---
+Route RAW: AMBOY P648 VJN M646 MIA/N0467F370 M646 POTIB Q11 WP900 L4 LIPLO Y741 BOLUT B576 ATOTI Y722 OLMEN
+EET RAW: WBFC0124 RPHI0224 RCAA0414 RJJJ0509 RKRR0525 (Type: <class 'str'>)
+Type: ARR
+Expanded Korea Points: ['ATOTI', 'TESIM', 'ELGEP', 'NIRAT', 'SAMLO', 'SOSDO', 'CJU', 'LOSNI', 'GUKSU', 'KAMIT', 'SAMUL', 'MAKSA', 'ATASO', 'PEBRI', 'GUNKU', 'OLMEN']
+Speed: N0473 -> 875.9960000000001 km/h
+RKRR EET Duration: 5:25:00
+Entry Time (RKRR): 05:25
+  -> ATOTI (Entry): 05:25
+  -> TESIM (+187.33km): 05:37
+  -> ELGEP (+22.57km): 05:39
+  -> NIRAT (+33.50km): 05:41
+  -> SAMLO (+56.07km): 05:45
+  -> SOSDO (+54.85km): 05:49
+  -> CJU (+45.06km): 05:52
+  -> LOSNI (+20.07km): 05:53
+  -> GUKSU (+36.47km): 05:56
+  -> KAMIT (+41.61km): 05:59
+  -> SAMUL (+97.45km): 06:05
+  -> MAKSA (+41.99km): 06:08
+  -> ATASO (+43.82km): 06:11
+  -> PEBRI (+54.80km): 06:15
+  -> GUNKU (+20.52km): 06:16
+  -> OLMEN (+18.51km): 06:18
+✓ DB 저장 완료: GIA878 (16개 지점)

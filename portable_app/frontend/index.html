@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유사호출 감지 시뮬레이션 시스템 - 대시보드</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/climb-comparison.css">
+    <link rel="stylesheet" href="css/modeling-test.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-plane"></i> 유사호출 감지 시뮬레이션 시스템 </h1>
+                <p class="subtitle">항공교통 관제 지원 시스템 v1.0</p>
+            </div>
+            <div class="system-status" id="system-status">
+                <span class="status-indicator"></span>
+                <span class="status-text">시스템 확인 중...</span>
+            </div>
+        </header>
+
+        <!-- 탭 네비게이션 -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-target="dashboard-view">
+                <i class="fas fa-chart-line"></i> 대시보드 (유사호출 분석)
+            </button>
+            <button class="nav-tab" data-target="all-flights-view">
+                <i class="fas fa-list"></i> 전체 운항 정보 (상세)
+            </button>
+            <button class="nav-tab" data-target="modeling-test-view">
+                <i class="fas fa-flask"></i> 모델링 테스트
+            </button>
+        </nav>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+
+            <!-- 뷰 1: 대시보드 -->
+            <div id="dashboard-view" class="view-section active">
+                <div class="content-layout">
+                    <!-- 사이드바 controls -->
+                    <aside class="sidebar">
+                        <div class="panel">
+                            <h2><i class="fas fa-cog"></i> 설정 및 실행</h2>
+
+                            <!-- 1. CLI 빠른 시뮬레이션 -->
+                            <div class="section cli-simulation"
+                                style="background: #f0f7ff; border: 2px solid #3498db; border-radius: 8px; padding: 15px;">
+                                <h3 style="color: #2980b9; margin-top: 0;">1.유사호출 잠지 시뮬레이션</h3>
+
+                                <input type="file" id="cli-file-input" accept=".csv,.xlsx,.xls" style="display: none;">
+                                <label for="cli-file-input" class="file-label" id="cli-drop-zone"
+                                    style="margin-bottom: 10px;">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>파일 선택</span>
+                                </label>
+                                <div id="cli-selected-file"
+                                    style="font-size: 12px; color: #666; margin-bottom: 10px; display: none;">
+                                    <i class="fas fa-check" style="color: #27ae60;"></i>
+                                    <span id="cli-filename"></span>
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <button id="cli-run-btn" class="btn btn-success" disabled
+                                        style="flex: 1; font-size: 13px; padding: 10px;">
+                                        <i class="fas fa-bolt"></i> 적용
+                                    </button>
+                                    <button id="cli-reset-db-btn" class="btn"
+                                        style="flex: 1; background: #e74c3c; color: white; font-size: 13px; padding: 10px; cursor: pointer; display: none;">
+                                        <i class="fas fa-redo"></i> DB초기화
+                                    </button>
+                                </div>
+
+                                <div id="cli-status" class="status-message" style="margin-top: 10px;"></div>
+
+                                <!-- CLI 진행률 -->
+                                <div id="cli-progress-container" style="display: none; margin-top: 10px;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
+                                        <span id="cli-progress-text">처리 중...</span>
+                                    </div>
+                                    <div
+                                        style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+                                        <div id="cli-progress-bar"
+                                            style="height: 100%; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%); width: 0%; transition: width 0.3s;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. 데이터 업로드 (숨김) -->
+                            <div class="section file-upload" style="display: none;">
+                                <h3>1. 데이터 업로드</h3>
+                                <div class="filter-group">
+                                    <label>업로드 모드:</label>
+                                    <div class="radio-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                        <label><input type="radio" name="upload-mode" value="replace" checked> 덮어쓰기
+                                            (초기화)</label>
+                                        <label><input type="radio" name="upload-mode" value="append"> 이어쓰기 (누적)</label>
+                                    </div>
+                                </div>
+
+                                <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+                                <label for="file-input" class="file-label" id="drop-zone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>클릭 또는 파일 드래그</span>
+                                </label>
+                                <div id="upload-status" class="status-message"></div>
+
+                                <!-- 업로드 진행률 표시 (숨김 상태로 시작) -->
+                                <div id="upload-progress-container" style="display: none; margin-top: 10px;">
+                                    <div class="progress-bar-bg"
+                                        style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                        <div id="upload-progress-bar"
+                                            style="width: 0%; height: 100%; background: #3498db; transition: width 0.3s;">
+                                        </div>
+                                    </div>
+                                    <div id="upload-progress-text"
+                                        style="font-size: 12px; color: #666; text-align: right; margin-top: 5px;">0%
+                                    </div>
+                                </div>
+
+                                <button id="upload-btn" class="btn btn-primary" style="margin-top: 10px;" disabled>
+                                    <i class="fas fa-upload"></i> 파일 업로드
+                                </button>
+                            </div>
+
+                            <!-- 2. 단순 결과 조회 -->
+                            <div class="section simulation">
+                                <h3>2. 단순 결과 조회</h3>
+
+                                <div class="filter-group" style="display: none;">
+                                    <label for="min-overlap-input" style="margin-bottom: 0; min-width: 100px;">공존시간
+                                        (분):</label>
+                                    <input type="number" id="min-overlap-input" value="2" min="1" step="1"
+                                        style="width: 100px;">
+                                </div>
+
+                                <div style="display: none;">
+                                    <button id="simulate-btn" class="btn btn-success" disabled>
+                                        <i class="fas fa-play"></i> 시뮬레이션 실행
+                                    </button>
+                                    <div id="estimated-time-display"
+                                        style="display: none; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; border-left: 4px solid #4CAF50;">
+                                        <div style="font-size: 12px; color: #666; margin-bottom: 2px;">예상 소요 시간</div>
+                                        <div style="font-size: 18px; font-weight: bold; color: #2e7d32;">
+                                            <span id="estimated-time-text">-</span>
+                                        </div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 2px;">
+                                            <span id="estimated-pairs-text">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="simulation-status" class="status-message"></div>
+
+                                <!-- 시뮬레이션 프로그레스 바 -->
+                                <div id="simulation-progress-container" style="display: none; margin-top: 15px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span style="font-size: 13px; color: #666;">진행률:</span>
+                                        <span id="simulation-progress-text"
+                                            style="font-size: 13px; color: #666; font-weight: 600;">0%</span>
+                                    </div>
+                                    <div
+                                        style="width: 100%; height: 25px; background: #f0f0f0; border-radius: 4px; overflow: hidden; border: 1px solid #ddd;">
+                                        <div id="simulation-progress-bar"
+                                            style="height: 100%; background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%); width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                            <span id="simulation-progress-percent"
+                                                style="color: white; font-size: 12px; font-weight: 600;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 날짜 범위 선택 (달력) -->
+                                <div class="filter-group"
+                                    style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">조회 일자</label>
+                                    <input type="date" id="selected-date-picker"
+                                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 10px;">
+                                    <button id="view-results-btn" class="btn btn-info" style="width: 100%;">
+                                        <i class="fas fa-search"></i> 단순 결과 조회
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 3. 항공사별 유사호출 -->
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">3. 항공사별 유사호출</h3>
+                                <div id="sidebar-airline-stats"
+                                    style="font-size: 13px; line-height: 1.8; max-height: 200px; overflow-y: auto;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div>
+
+                            <!-- 4. 유사도 레벨 분포 -->
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">4. 유사도 레벨 분포</h3>
+                                <div id="sidebar-similarity-level-stats"
+                                    style="font-size: 13px; line-height: 2; max-height: 200px; overflow-y: auto;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div>
+
+                            <!-- 5. 콜사인10 - 상위 10개 유사쌍 -->
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">5. 콜사인10 (상위 유사도)</h3>
+                                <div id="sidebar-top-similarities"
+                                    style="font-size: 11px; line-height: 1.6; max-height: 250px; overflow-y: auto;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div>
+
+                            <!-- 6. 일자별 DB 초기화 -->
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">6. 일자별 DB 초기화</h3>
+
+                                <!-- 삭제 방식 선택 -->
+                                <div style="margin-bottom: 15px;">
+                                    <label
+                                        style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                                        <input type="radio" name="delete-type" value="all" id="delete-all"
+                                            style="margin-right: 5px;" checked>
+                                        <span style="color: #2c3e50; margin-right: 15px;">전체 DB 삭제 </span>
+                                        <input type="radio" name="delete-type" value="date" id="delete-by-date"
+                                            style="margin-right: 5px;">
+                                        <span style="color: #2c3e50; margin-right: 12px;">일자별 삭제</span>
+                                    </label>
+
+                                </div>
+
+                                <!-- 삭제할 일자 선택 (초기에는 숨김) -->
+                                <div id="delete-date-section" style="display: none; margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">삭제할 일자</label>
+                                    <input type="date" id="delete-date-picker"
+                                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                </div>
+
+                                <!-- 초기화 버튼 -->
+                                <button id="delete-db-btn" class="btn btn-danger"
+                                    style="width: 100%; background-color: #e74c3c; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-trash"></i> 삭제 실행
+                                </button>
+                            </div>
+
+                            <!-- 4. 위험도 분포 및 항공사 통계 (주석처리: 일자별 통계와 중복) -->
+                            <!-- <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">4. 위험도 분포</h3>
+                                <div id="sidebar-risk-stats"
+                                    style="font-size: 13px; line-height: 2.2; margin-bottom: 15px;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div>
+
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">5. 항공사 별 유사호출</h3>
+                                <div id="sidebar-airline-stats"
+                                    style="font-size: 13px; line-height: 1.8; max-height: 200px; overflow-y: auto;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div> -->
+
+                            <!-- 4. 결과 내보내기 (숨김) -->
+                            <div class="section export" style="display: none;">
+                                <h3>3. 결과 내보내기</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <button id="export-json-btn" class="btn btn-secondary" disabled>
+                                        JSON
+                                    </button>
+                                    <button id="export-csv-btn" class="btn btn-secondary" disabled>
+                                        CSV
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </aside>
+
+                    <!-- 메인 결과 영역 -->
+                    <div class="content-area">
+                        <!-- 통계 카드 -->
+                        <div class="stats-section" style="margin-bottom: 32px;">
+                            <!-- 통계 카드 Row 1 -->
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">유사호출 감지</div>
+                                        <div class="stat-value" id="stat-total-sims">0</div>
+                                        <div class="stat-percent">전체 데이터</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon critical"><i class="fas fa-project-diagram"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">섹터 내 공존</div>
+                                        <div class="stat-value" id="stat-filtered-sims">0</div>
+                                        <div class="stat-percent">실제 위험</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon safe"><i class="fas fa-plane-departure"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">분석된 항공편</div>
+                                        <div class="stat-value" id="stat-total-flights">0</div>
+                                        <div class="stat-percent">총 운항</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 통계 카드 Row 2 (Advanced Stats) -->
+                            <div class="stats-grid" style="margin-top: 16px;">
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background:#e8f6f3; color:#1abc9c;"><i
+                                            class="fas fa-clock"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">피크 시간대</div>
+                                        <div class="stat-value" id="stat-peak-time">-</div>
+                                        <div class="stat-percent">가장 붐비는 시간</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background:#fef5e7; color:#f39c12;"><i
+                                            class="fas fa-map-marker-alt"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">최다 빈도 섹터</div>
+                                        <div class="stat-value" id="stat-top-sector">-</div>
+                                        <div class="stat-percent">집중 관리 구역</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background:#ebf5fb; color:#3498db;"><i
+                                            class="fas fa-stopwatch"></i></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">평균 공존 시간</div>
+                                        <div class="stat-value" id="stat-avg-overlap">0분</div>
+                                        <div class="stat-percent">평균 지속 시간</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 차트 섹션 -->
+                        <div class="charts-section">
+                            <div class="chart-container full-width">
+                                <h3><i class="fas fa-chart-bar"></i> 일자별/시간대별 공존 현황</h3>
+                                <canvas id="timeChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 결과 테이블 -->
+                        <div class="results-section">
+                            <h2><i class="fas fa-list-alt"></i> 유사호출 목록</h2>
+
+                            <div class="table-controls">
+                                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                                    <input type="text" id="search-input" class="search-box" placeholder="콜사인으로 검색..."
+                                        style="width: 300px;">
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <span class="result-count" id="result-count">결과: 0개</span>
+                                    <!-- 시간대 필터 인디케이터 -->
+                                    <div id="time-filter-indicator" style="display: none;">
+                                        <span
+                                            style="background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                            시간대: <strong id="time-filter-value"></strong>
+                                            <button id="clear-time-filter-btn"
+                                                style="background: none; border: none; color: white; cursor: pointer; margin-left: 6px; font-weight: bold;">✕</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-wrapper" style="max-height: 800px; overflow-y: auto; position: relative;">
+                                <table class="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>콜사인 1</th>
+                                            <th>콜사인 2</th>
+                                            <th>유사도 레벨</th>
+                                            <th>섹터 정보</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-body">
+                                        <tr>
+                                            <td colspan="4" class="empty-state">데이터를 업로드하고 시뮬레이션을 실행하세요</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 페이지네이션 -->
+                            <div class="pagination-controls"
+                                style="display: flex; justify-content: center; margin-top: 15px; gap: 10px; align-items: center;">
+                                <button id="prev-page-btn" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-chevron-left"></i> 이전
+                                </button>
+                                <span id="page-info"
+                                    style="font-size: 14px; font-weight: bold; white-space: nowrap; min-width: 80px; text-align: center;">1
+                                    / 1</span>
+                                <button id="next-page-btn" class="btn btn-secondary" disabled>
+                                    다음 <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 뷰 2: 전체 운항 정보 -->
+            <div id="all-flights-view" class="view-section" style="display: none;">
+                <div class="panel" style="height: 100%; display: flex; flex-direction: column;">
+                    <!-- 상단 헤더 및 툴바 -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
+                        <h2 style="margin: 0;"><i class="fas fa-plane"></i> 전체 항공편 상세 정보</h2>
+
+                        <div class="toolbar-actions"
+                            style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
+                            <!-- 날짜 네비게이션 (달력) -->
+                            <div class="date-nav" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="date" id="all-flights-date-picker"
+                                    style="padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            </div>
+
+                            <!-- 액션 버튼 그룹 -->
+                            <button id="all-flights-view-btn" class="btn btn-primary">
+                                <i class="fas fa-search"></i> 조회
+                            </button>
+                            <button id="all-flights-clear-filter-btn" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> 전체보기
+                            </button>
+                            <div style="width: 1px; height: 24px; background: #ddd; margin: 0 4px;"></div> <!-- 구분선 -->
+                            <button id="export-all-excel-btn" class="btn btn-success">
+                                <i class="fas fa-file-excel"></i> 엑셀저장
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper" style="flex: 1;">
+                        <table class="results-table" id="all-flights-table">
+                            <colgroup>
+                                <col style="width: 4%">
+                                <col style="width: 7%">
+                                <col style="width: 8%">
+                                <col style="width: 7%">
+                                <col style="width: 12%">
+                                <col style="width: 25%">
+                                <col style="width: 25%">
+                                <col style="width: 12%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>번호</th>
+                                    <th>콜사인</th>
+                                    <th>날짜/시간 (EOBT)</th>
+                                    <th>출발/도착</th>
+                                    <th>기종/속도/고도</th>
+                                    <th>📍 지점별 통과시간</th>
+                                    <th>✈️ 섹터 진입/진출</th>
+                                    <th>유사도 레벨</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-flights-body">
+                                <tr>
+                                    <td colspan="8" class="empty-state">데이터를 불러오는 중...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 뷰 3: 모델링 테스트 -->
+            <div id="modeling-test-view" class="view-section" style="display: none;">
+                <div class="modeling-test-container">
+                    <!-- 좌측: 입력 폼 -->
+                    <div class="modeling-test-input">
+                        <h2><i class="fas fa-flask"></i> 기종 고려 고도 상승 계산 테스트</h2>
+
+                        <form id="modeling-test-form">
+                            <div class="form-group">
+                                <label>콜사인 (Callsign)</label>
+                                <input type="text" id="test-callsign" placeholder="e.g., KAL123" value="KAL123">
+                            </div>
+
+                            <div class="form-group">
+                                <label>기종 (Aircraft Type)</label>
+                                <select id="test-aircraft-type">
+                                    <option value="">선택...</option>
+                                    <option value="B38M">Boeing 737-800 (B38M)</option>
+                                    <option value="A333">Airbus A330-300 (A333)</option>
+                                    <option value="B744">Boeing 747-400 (B744)</option>
+                                    <option value="B77W">Boeing 777-300ER (B77W)</option>
+                                    <option value="B788">Boeing 787-8 (B788)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>속도 (Speed)</label>
+                                    <input type="text" id="test-speed" placeholder="e.g., K0850" value="K0850">
+                                </div>
+                                <div class="form-group">
+                                    <label>고도 (Altitude)</label>
+                                    <input type="text" id="test-altitude" placeholder="e.g., F370" value="F370">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>출발지 (Dept)</label>
+                                    <input type="text" id="test-dept" placeholder="e.g., RKSI" value="RKSI">
+                                </div>
+                                <div class="form-group">
+                                    <label>도착지 (Dest)</label>
+                                    <input type="text" id="test-dest" placeholder="e.g., VHHH" value="VHHH">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>날짜 (Date)</label>
+                                    <input type="date" id="test-eobd">
+                                </div>
+                                <div class="form-group">
+                                    <label>출발시간 (Time)</label>
+                                    <input type="time" id="test-eobt" value="11:00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>항로 (Route)</label>
+                                <textarea id="test-route" placeholder="e.g., LAMEN A593 SADLI Y590 BEDAR" rows="4">LAMEN A593 SADLI Y590 BEDAR Y722 ELGEP</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>EET (선택사항)</label>
+                                <input type="text" id="test-eet" placeholder="e.g., RKRR0015">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calculator"></i> 계산 실행
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 우측: 결과 표시 -->
+                    <div class="modeling-test-result">
+                        <h2><i class="fas fa-chart-bar"></i> 계산 결과</h2>
+
+                        <div id="modeling-test-status" style="display: none;">
+                            <p id="modeling-test-status-text"></p>
+                        </div>
+
+                        <!-- 항공편 정보 카드 -->
+                        <div id="modeling-flight-info" class="info-card" style="display: none;">
+                            <h3>항공편 정보</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="label">콜사인</span>
+                                    <span class="value" id="result-callsign">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">기종</span>
+                                    <span class="value" id="result-aircraft">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">경로</span>
+                                    <span class="value" id="result-route">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">계산 속도</span>
+                                    <span class="value" id="result-speed">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">속도 출처</span>
+                                    <span class="value" id="result-speed-source">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">상승률</span>
+                                    <span class="value" id="result-climb-rate">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">순항 고도</span>
+                                    <span class="value" id="result-cruise-fl">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">출발 시간</span>
+                                    <span class="value" id="result-departure">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 고도 상승 분석 -->
+                        <div id="modeling-climb-analysis" class="climb-analysis-card" style="display: none;">
+                            <h3>고도 상승 분석</h3>
+                            <div class="analysis-grid">
+                                <div class="analysis-item">
+                                    <h4>방법 A: 단순 선형 상승</h4>
+                                    <div class="metric">
+                                        <span class="label">총 상승시간:</span>
+                                        <span class="value" id="method-a-climb-time">-</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="label">상승 거리:</span>
+                                        <span class="value" id="method-a-climb-distance">-</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="label">순항 거리:</span>
+                                        <span class="value" id="method-a-cruise-distance">-</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="label">총 소요시간:</span>
+                                        <span class="value" id="method-a-total-time">-</span>
+                                    </div>
+                                </div>
+                                <div class="analysis-item">
+                                    <h4>방법 B: EET 역계산</h4>
+                                    <div class="metric">
+                                        <span class="label">상승시간:</span>
+                                        <span class="value" id="method-b-climb-time">-</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="label">상승 거리:</span>
+                                        <span class="value" id="method-b-climb-distance">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 경유점 테이블 -->
+                        <div id="modeling-waypoints" class="waypoints-table" style="display: none;">
+                            <h3>경유점 상세 정보</h3>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>지점명</th>
+                                            <th>예상 시간</th>
+                                            <th>고도 (ft)</th>
+                                            <th>상승 중</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="waypoints-tbody">
+                                        <tr><td colspan="5" style="text-align: center; color: #999;">계산 후 표시됩니다</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="modeling-loading" style="display: none; text-align: center; padding: 40px;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #3498db;"></i>
+                            <p style="margin-top: 10px; color: #666;">계산 중입니다...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 상세 정보 팝업 (Modal) -->
+        <div id="detail-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2><i class="fas fa-info-circle"></i> 상세 운항 정보 비교</h2>
+                <div class="modal-body">
+                    <div class="flight-col">
+                        <h3 id="modal-title-1">항공편 1</h3>
+                        <div id="modal-info-1" class="flight-info-box"></div>
+                        <h4>지점별 통과 시간</h4>
+                        <div class="table-wrapper mini-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>지점</th>
+                                        <th>통과시간</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-waypoint-table-1"></tbody>
+                            </table>
+                        </div>
+                        <h4>섹터 통과 시간</h4>
+                        <div class="table-wrapper mini-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>섹터</th>
+                                        <th>진입</th>
+                                        <th>진출</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-table-1"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="flight-col">
+                        <h3 id="modal-title-2">항공편 2</h3>
+                        <div id="modal-info-2" class="flight-info-box"></div>
+                        <h4>지점별 통과 시간</h4>
+                        <div class="table-wrapper mini-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>지점</th>
+                                        <th>통과시간</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-waypoint-table-2"></tbody>
+                            </table>
+                        </div>
+                        <h4>섹터 통과 시간</h4>
+                        <div class="table-wrapper mini-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>섹터</th>
+                                        <th>진입</th>
+                                        <th>진출</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-table-2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+            <p>유사호출 감시 시뮬레이션 시스템 v1.0 | Phase 5 Frontend</p>
+            <p id="footer-status">시스템 상태: 확인 중...</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/climb-comparison.js"></script>
+    <script src="js/modeling-test.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

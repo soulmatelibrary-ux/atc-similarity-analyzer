@@ -1,0 +1,137 @@
+<!-- 유사도 레벨 정의 표 (v2.1 정밀화) -->
+<div class="similarity-level-reference"
+    style="margin-top: 0; padding: 0 0 20px 0; background: #fff; border-radius: 0; border: none;">
+    <h2
+        style="margin: 0 0 10px 0; color: #2c3e50; font-size: 16px; display: flex; align-items: center; gap: 8px; padding: 10px 0;">
+        <i class="fas fa-info-circle"></i> 유사도 검출 기준 (v2.1)
+    </h2>
+    <div style="overflow-x: auto;">
+        <table
+            style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <style>
+                /* Force top alignment for all cells in this table */
+                .similarity-level-reference table th,
+                .similarity-level-reference table td {
+                    vertical-align: top !important;
+                }
+            </style>
+            <thead>
+                <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <th
+                        style="padding: 12px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">
+                        레벨 ID</th>
+                    <th
+                        style="padding: 12px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">
+                        규칙명</th>
+                    <th
+                        style="padding: 12px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">
+                        검출 상세 조건</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600;">위험도</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- LEVEL 5: 고위험 -->
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fff5f5;">
+                    <td style="padding: 10px; font-weight: 700; color: #e74c3c; border-right: 1px solid #e0e0e0;">LEVEL
+                        5-1</td>
+                    <td style="padding: 10px; font-weight: 600; border-right: 1px solid #e0e0e0;">항공사 유사 + 숫자 동일</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">항공사 [전치/샌드위치] 유사 + 숫자 부분이 100% 동일
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #e74c3c; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">고위험</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fff5f5;">
+                    <td style="padding: 10px; font-weight: 700; color: #e74c3c; border-right: 1px solid #e0e0e0;">LEVEL
+                        5-2</td>
+                    <td style="padding: 10px; font-weight: 600; border-right: 1px solid #e0e0e0;">동일 항공사 + 끝 3자리</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">같은 항공사 + 마지막 3자리 숫자 일치</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #e74c3c; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">고위험</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fff5f5;">
+                    <td style="padding: 10px; font-weight: 700; color: #e74c3c; border-right: 1px solid #e0e0e0;">LEVEL
+                        5-3</td>
+                    <td style="padding: 10px; font-weight: 600; border-right: 1px solid #e0e0e0;">동일 항공사 + 시각 유사</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">같은 항공사 + 숫자 전체가 시각적 혼동 패턴으로 구성</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #e74c3c; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">고위험</span>
+                    </td>
+                </tr>
+
+
+                <!-- LEVEL 4: 중위험 -->
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fffbf0;">
+                    <td style="padding: 10px; font-weight: 700; color: #f39c12; border-right: 1px solid #e0e0e0;">LEVEL
+                        4-1</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">숫자 위치 바뀜 (전치)</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">숫자 구성은 같으나 순서가 하나만 바뀜 (예: 123 vs 132)
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">중위험</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fffbf0;">
+                    <td style="padding: 10px; font-weight: 700; color: #f39c12; border-right: 1px solid #e0e0e0;">LEVEL
+                        4-2</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">양끝 일치 + 가운데 유사</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">동일 항공사 + 첫/끝 숫자 동일 + 가운데가 혼동 패턴</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">중위험</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fffbf0;">
+                    <td style="padding: 10px; font-weight: 700; color: #f39c12; border-right: 1px solid #e0e0e0;">LEVEL
+                        4-3</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">편집 거리 1</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">숫자가 한 자리만 다르거나, 추가/삭제됨</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">중위험</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fffbf0;">
+                    <td style="padding: 10px; font-weight: 700; color: #f39c12; border-right: 1px solid #e0e0e0;">LEVEL
+                        4-4</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">항공사 유사 + 숫자 유사</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">항공사 유사 + 숫자가 시각/청각적 혼동 패턴에 해당</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">중위험</span>
+                    </td>
+                </tr>
+
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #fffbf0;">
+                    <td style="padding: 10px; font-weight: 700; color: #f39c12; border-right: 1px solid #e0e0e0;">LEVEL
+                        4-5</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">타 항공사 + 숫자 동일</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">항공사는 다르나 숫자 부분이 완전히 동일</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">중위험</span>
+                    </td>
+                </tr>
+
+                <!-- LEVEL 3: 저위험 -->
+                <tr style="border-bottom: 1px solid #e0e0e0; background: #f0f9ff;">
+                    <td style="padding: 10px; font-weight: 700; color: #3498db; border-right: 1px solid #e0e0e0;">LEVEL
+                        3-1</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">선행 0 차이</td>
+                    <td style="padding: 10px; border-right: 1px solid #e0e0e0;">'123' vs '0123' 처럼 수치적 값은 동일하나 표기만 다름
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span
+                            style="background: #3498db; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">저위험</span>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>

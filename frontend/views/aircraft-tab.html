@@ -1,0 +1,648 @@
+<div class="aircraft-tab-container animation-fade-in">
+    <div class="view-header" style="margin-bottom: 20px;">
+        <div class="view-title">
+            <i class="fas fa-plane-up"></i>
+            <h2 style="margin: 0;">항공기 기종 관리</h2>
+        </div>
+        <p class="view-description" style="margin: 8px 0 0 0;">ICAO/IATA 기종 정보를 조회하고 기본 성능 데이터를 유지 관리합니다.</p>
+    </div>
+
+    <div class="aircraft-grid">
+        <!-- 목록 영역 -->
+        <section class="card aircraft-list" aria-label="기종 목록">
+            <div class="card-header">
+                <h3><i class="fas fa-database"></i> 등록 기종</h3>
+                <div class="aircraft-header-actions">
+                    <div class="input-with-icon">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="aircraft-search" placeholder="제조사, 모델, ICAO, IATA 검색">
+                    </div>
+                    <button id="aircraft-refresh-btn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-rotate"></i> 새로고침
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="aircraft-status" class="status-message" role="status"></div>
+                <div class="table-responsive">
+                    <table class="table table-hover" aria-describedby="aircraft-status">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">번호</th>
+                                <th>ICAO</th>
+                                <th>IATA</th>
+                                <th>제조사</th>
+                                <th>모델</th>
+                                <th>속도 (km/h)</th>
+                                <th>속도 (kt)</th>
+                                <th>상승 (fpm)</th>
+                                <th>천정 (FL)</th>
+                                <th style="width: 120px;">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aircraft-table-body">
+                            <tr>
+                                <td colspan="10" style="text-align: center; color: #888; padding: 30px 0;">데이터를 불러오는 중입니다...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer aircraft-pagination">
+                <div class="pagination-info">
+                    <span id="aircraft-total-count">0</span>건 중 페이지 <span id="aircraft-page-info">1 / 1</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="aircraft-prev-btn" class="btn btn-secondary btn-sm" disabled>
+                        <i class="fas fa-chevron-left"></i> 이전
+                    </button>
+                    <label style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                        페이지 당
+                        <select id="aircraft-page-size">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                        </select>
+                    </label>
+                    <button id="aircraft-next-btn" class="btn btn-secondary btn-sm" disabled>
+                        다음 <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 입력/수정 영역 -->
+        <section class="card aircraft-form" aria-label="기종 입력">
+            <div class="card-header">
+                <h3 id="aircraft-form-title"><i class="fas fa-plus-circle"></i> 새 기종 등록</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button id="aircraft-import-csv-btn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-file-import"></i> CSV 가져오기
+                    </button>
+                    <button id="aircraft-reset-btn" class="btn btn-light btn-sm">초기화</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form id="aircraft-form">
+                    <div class="form-grid">
+                        <label>
+                            ICAO 코드 (필수)
+                            <input type="text" id="aircraft-icao" maxlength="4" placeholder="예: B77L" required>
+                        </label>
+                        <label>
+                            IATA 코드
+                            <input type="text" id="aircraft-iata" maxlength="3" placeholder="예: 77W">
+                        </label>
+                        <label>
+                            제조사
+                            <input type="text" id="aircraft-manufacturer" placeholder="예: Boeing">
+                        </label>
+                        <label>
+                            모델
+                            <input type="text" id="aircraft-model" placeholder="예: 777-200LR">
+                        </label>
+                        <label>
+                            분류/설명
+                            <input type="text" id="aircraft-type-description" placeholder="예: Long-range twinjet">
+                        </label>
+                        <label>
+                            순항 속도 (km/h)
+                            <input type="number" id="aircraft-speed-kmh" min="0" step="10" placeholder="예: 905">
+                        </label>
+                        <label>
+                            순항 속도 (kt)
+                            <input type="number" id="aircraft-speed-knots" min="0" step="5" placeholder="예: 488">
+                        </label>
+                        <label>
+                            상승률 (fpm)
+                            <input type="number" id="aircraft-climb" min="0" step="100" placeholder="예: 2000">
+                        </label>
+                        <label>
+                            최고 운용고도 (FL)
+                            <input type="number" id="aircraft-ceiling" min="0" step="10" placeholder="예: 430">
+                        </label>
+                    </div>
+                    <label style="display: block; margin-top: 15px;">
+                        비고
+                        <textarea id="aircraft-notes" rows="3" placeholder="특이사항 또는 참고 메모"></textarea>
+                    </label>
+                    <div class="form-actions">
+                        <button type="submit" id="aircraft-submit-btn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 저장
+                        </button>
+                        <button type="button" id="aircraft-cancel-edit" class="btn btn-secondary" style="display: none;">
+                            <i class="fas fa-undo"></i> 수정 취소
+                        </button>
+                    </div>
+                    <input type="hidden" id="aircraft-current-icao" value="">
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <div id="aircraft-loading" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>데이터 동기화 중...</p>
+    </div>
+
+    <!-- CSV Import Modal -->
+    <div id="aircraft-import-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-import"></i> CSV 파일 가져오기</h3>
+                <button type="button" class="modal-close" id="aircraft-import-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="csv-import-section">
+                    <div class="import-file-area">
+                        <input type="file" id="aircraft-csv-file" accept=".csv" style="display: none;">
+                        <div id="csv-drop-zone" class="csv-drop-zone">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                            <p>CSV 파일을 여기에 끌어 놓거나 <a href="#" id="csv-file-click">클릭</a>하여 선택하세요</p>
+                            <small>지원 형식: CSV (comma-separated values)</small>
+                        </div>
+                        <div id="csv-file-info" class="csv-file-info" style="display: none; margin-top: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f0f8ff; border-radius: 6px;">
+                                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                                <div>
+                                    <strong id="csv-file-name"></strong>
+                                    <div style="font-size: 0.85rem; color: #666;">
+                                        크기: <span id="csv-file-size"></span>
+                                    </div>
+                                </div>
+                                <button type="button" id="csv-file-clear" class="btn btn-sm" style="margin-left: auto; padding: 4px 8px;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="import-options">
+                        <h4>가져오기 옵션</h4>
+                        <div class="option-group">
+                            <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                                <input type="radio" name="aircraft-import-mode" value="replace" checked>
+                                <span>
+                                    <strong>모든 데이터 교체</strong>
+                                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                                        기존 기종 데이터를 모두 삭제하고 CSV 파일의 데이터로 교체합니다.
+                                    </div>
+                                </span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                                <input type="radio" name="aircraft-import-mode" value="merge">
+                                <span>
+                                    <strong>데이터 병합</strong>
+                                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                                        기존 기종 데이터는 유지하고 새로운 기종만 추가합니다. (중복 제외)
+                                    </div>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                            <label style="display: flex; align-items: flex-start; gap: 10px; margin: 10px 0;">
+                                <input type="checkbox" id="aircraft-recalc-waypoints" style="margin-top: 4px;">
+                                <span>
+                                    <strong>웨이포인트 시간 재계산</strong>
+                                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                                        임포트된 항공기를 사용하는 기존 항공편의 웨이포인트 도착 시간을 새로운 최적화 로직으로 재계산합니다. (시간이 소요될 수 있습니다)
+                                    </div>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="csv-import-progress" style="display: none; margin-top: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div class="spinner-small"></div>
+                            <span id="csv-import-status-text">파일을 가져오는 중입니다...</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="csv-import-progress-fill" class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="csv-import-result" style="display: none; margin-top: 20px;">
+                        <div id="csv-import-result-box" class="import-result-box"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="aircraft-import-cancel" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> 취소
+                </button>
+                <button type="button" id="aircraft-import-submit" class="btn btn-primary" disabled>
+                    <i class="fas fa-upload"></i> 가져오기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #aircraft-view-content {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+    }
+
+    .aircraft-tab-container {
+        width: 100%;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: relative;
+        align-self: stretch;
+        flex: 1;
+    }
+
+    .aircraft-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+        gap: 24px;
+        width: 100%;
+        align-items: start;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.75);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        gap: 10px;
+    }
+
+    .aircraft-header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .input-with-icon {
+        display: flex;
+        align-items: center;
+        background: #f5f7fa;
+        border: 1px solid #dfe6ee;
+        border-radius: 6px;
+        padding: 0 10px;
+        min-width: 260px;
+    }
+
+    .input-with-icon i {
+        color: #7f8c8d;
+        margin-right: 8px;
+    }
+
+    .input-with-icon input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        padding: 8px 0;
+    }
+
+    #aircraft-view-content .aircraft-pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 20px !important;
+        flex-wrap: wrap !important;
+        border-top: 1px solid #ecf0f1;
+        margin-top: 10px;
+        padding-top: 12px;
+    }
+
+    #aircraft-view-content .pagination-info {
+        white-space: nowrap;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    #aircraft-view-content .pagination-controls {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 10px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    #aircraft-view-content .pagination-controls select {
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        padding: 4px 6px;
+        cursor: pointer;
+    }
+
+    .aircraft-list {
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: 100%;
+    }
+
+    .aircraft-list .card-body {
+        flex: 0 1 auto !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: 500px !important;
+        min-height: 300px !important;
+    }
+
+    .aircraft-list .table-responsive {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: auto !important;
+        width: 100% !important;
+    }
+
+    .aircraft-list .card-footer {
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
+    }
+
+    .aircraft-form .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .aircraft-form label {
+        font-size: 0.9rem;
+        color: #2c3e50;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-weight: 600;
+    }
+
+    .aircraft-form input,
+    .aircraft-form textarea {
+        border: 1px solid #dfe6ee;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+
+    .aircraft-form textarea {
+        resize: vertical;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .aircraft-table-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .aircraft-table-actions button {
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-edit {
+        background: #f1f8ff;
+        color: #1f6feb;
+    }
+
+    .btn-delete {
+        background: #fff0f1;
+        color: #d7263d;
+    }
+
+    @media (max-width: 1200px) {
+        .aircraft-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* CSV Import Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: #2c3e50;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #888;
+        padding: 0;
+    }
+
+    .modal-close:hover {
+        color: #2c3e50;
+    }
+
+    .modal-body {
+        padding: 20px;
+        max-height: calc(90vh - 140px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 15px 20px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .csv-import-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .csv-drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f9f9f9;
+    }
+
+    .csv-drop-zone:hover {
+        border-color: #1f6feb;
+        background: #f0f8ff;
+    }
+
+    .csv-drop-zone.dragover {
+        border-color: #1f6feb;
+        background: #e7f2ff;
+        box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
+    }
+
+    .csv-drop-zone i {
+        font-size: 2.5rem;
+        color: #888;
+        margin-bottom: 10px;
+    }
+
+    .csv-drop-zone p {
+        margin: 10px 0;
+        font-size: 0.95rem;
+        color: #2c3e50;
+    }
+
+    .csv-drop-zone a {
+        color: #1f6feb;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .csv-drop-zone small {
+        display: block;
+        margin-top: 8px;
+        color: #888;
+        font-size: 0.85rem;
+    }
+
+    .import-options {
+        padding: 15px;
+        background: #f5f7fa;
+        border-radius: 6px;
+    }
+
+    .import-options h4 {
+        margin: 0 0 12px 0;
+        color: #2c3e50;
+    }
+
+    .option-group label {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .option-group label:hover {
+        background: rgba(31, 111, 235, 0.05);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #1f6feb, #1e90ff);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #1f6feb;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .import-result-box {
+        padding: 15px;
+        border-radius: 6px;
+        border-left: 4px solid;
+    }
+
+    .import-result-box.success {
+        background: #f0fdf4;
+        border-left-color: #22c55e;
+        color: #166534;
+    }
+
+    .import-result-box.error {
+        background: #fef2f2;
+        border-left-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .import-result-box.warning {
+        background: #fffbeb;
+        border-left-color: #eab308;
+        color: #92400e;
+    }
+</style>

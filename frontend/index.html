@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airspace-Sim-Station | 유사호출 감시 대시보드</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body class="theme-airspace" data-user-role="guest">
+    <div id="login-screen" class="login-screen">
+        <div class="login-panel">
+            <div class="login-visual">
+                <div class="login-visual__overlay">
+                    <p class="visual-eyebrow">Airspace-Sim-Station</p>
+                    <h2>Integrated ATC Intelligence Portal</h2>
+                    <p class="visual-sub">Real-time similarity detection, sector analytics, and conflict foresight</p>
+                    <div class="visual-tags">
+                        <span><i class="fas fa-satellite-dish"></i> Radar Sync</span>
+                        <span><i class="fas fa-route"></i> Route Mesh</span>
+                        <span><i class="fas fa-crosshairs"></i> Conflict Scan</span>
+                    </div>
+                </div>
+            </div>
+            <div class="login-form-panel">
+                <div class="login-form-heading">
+                    <p class="eyebrow">Airspace-Sim-Station Access</p>
+                    <h3>관제사 로그인</h3>
+                    <p>Airspace-Sim-Station 대시보드에 접속하려면 인증을 진행해주세요.</p>
+                </div>
+                <form id="login-form" autocomplete="off">
+                    <label for="login-email">이메일</label>
+                    <div class="input-field">
+                        <i class="fas fa-user-shield"></i>
+                        <input type="text" id="login-email" placeholder="관제사 이메일" inputmode="email"
+                            autocomplete="username" spellcheck="false" autocapitalize="none" required>
+                    </div>
+                    <label for="login-password">비밀번호</label>
+                    <div class="input-field">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="login-password" placeholder="보안 비밀번호" required>
+                    </div>
+                    <button type="submit" class="btn login-btn">
+                        <i class="fas fa-door-open"></i> 로그인
+                    </button>
+                </form>
+                <div id="login-status" class="login-status" role="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-shell" class="app-shell locked">
+        <div class="container">
+            <!-- 헤더 -->
+            <header class="header"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                <div class="header-content">
+                    <h1 style="margin: 0; font-size: 24px;"><i class="fas fa-plane"></i> <span
+                            class="brand-title">Airspace-Sim-Station</span> <span class="brand-tagline">유사호출 감시 시뮬레이션
+                            시스템</span></h1>
+                    <p class="subtitle" style="margin: 5px 0 0 0; font-size: 13px;">현재 데이터: <span
+                            id="current-date-info">로드
+                            중...</span> | <span id="current-flights-info">-</span>편</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="system-status" id="system-status">
+                        <span class="status-indicator"></span>
+                        <span class="status-text">시스템 확인 중...</span>
+                    </div>
+                    <div class="license-info" id="license-info"
+                        style="padding: 8px 12px; background: #f0f4f8; border-radius: 4px; font-size: 12px; border-left: 3px solid #1e88e5;">
+                        <span class="license-type" id="license-type-display">라이선스 로드 중...</span>
+                        <span class="license-status" id="license-status-display"
+                            style="display: block; color: #666; margin-top: 2px;"></span>
+                    </div>
+                    <div class="user-pill" id="user-pill" aria-live="polite">
+                        <div class="user-pill__avatar" id="user-avatar">ATC</div>
+                        <div class="user-pill__meta">
+                            <span class="user-pill__label">Logged in</span>
+                            <span class="user-pill__name" id="user-name-display">-</span>
+                        </div>
+                        <button id="logout-btn" type="button" class="logout-btn" title="로그아웃">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 탭 네비게이션 -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-target="dashboard-view">
+                    <i class="fas fa-chart-line"></i> 대시보드 (유사호출 분석)
+                </button>
+                <button class="nav-tab" data-target="period-analysis-view">
+                    <i class="fas fa-chart-bar"></i> 기간 분석
+                </button>
+                <button class="nav-tab" data-target="all-flights-view">
+                    <i class="fas fa-list"></i> 전체 운항 정보 (상세)
+                </button>
+                <button class="nav-tab" data-target="csv-management-view">
+                    <i class="fas fa-file-csv"></i> CSV 관리
+                </button>
+                <button class="nav-tab" data-target="aircraft-view" id="aircraft-tab-btn">
+                    <i class="fas fa-screwdriver-wrench"></i> 항공기 기종 관리
+                </button>
+                <button class="nav-tab" data-target="admin-view" id="admin-tab-btn">
+                    <i class="fas fa-shield-alt"></i> 관리자
+                </button>
+                <button class="nav-tab" data-target="test-view" id="test-tab-btn">
+                    <i class="fas fa-vial"></i> 모델링 테스트
+                </button>
+            </nav>
+
+            <!-- 메인 콘텐츠 -->
+            <main class="main-content">
+
+                <!-- 뷰 1: 대시보드 -->
+                <div id="dashboard-view" class="view-section active">
+                    <div style="display: flex; gap: 20px; flex: 1; overflow: hidden;">
+                        <!-- 왼쪽: 분석 메뉴 -->
+                        <aside
+                            style="width: 280px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid #e0e0e0; padding: 15px; background: #fafafa;">
+                            <!-- 1. 항공사별 검출순위 -->
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; cursor: pointer; user-select: none; padding-bottom: 8px; border-bottom: 2px solid #3498db;"
+                                    class="menu-item-toggle" data-menu="airline-ranking">
+                                    <i class="fas fa-plane"></i> 항공사별 검출순위
+                                </h3>
+                                <div id="airline-ranking-list" style="max-height: 280px; overflow: hidden;">
+                                    <div
+                                        style="padding: 10px; background: white; border-radius: 4px; font-size: 12px; color: #999; text-align: center;">
+                                        데이터 로딩 중...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. 유사도레벨 랭킹 -->
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; cursor: pointer; user-select: none; padding-bottom: 8px; border-bottom: 2px solid #e8b91f;"
+                                    class="menu-item-toggle" data-menu="similarity-level">
+                                    <i class="fas fa-chart-pie"></i> 유사도레벨 랭킹
+                                </h3>
+                                <div id="similarity-level-list" style="max-height: 280px; overflow: hidden;">
+                                    <div
+                                        style="padding: 10px; background: white; border-radius: 4px; font-size: 12px; color: #999; text-align: center;">
+                                        데이터 로딩 중...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. 콜사인 유사도 TOP 10 -->
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; cursor: pointer; user-select: none; padding-bottom: 8px; border-bottom: 2px solid #27ae60;"
+                                    class="menu-item-toggle" data-menu="callsign-top10">
+                                    <i class="fas fa-trophy"></i> 콜사인 TOP 10
+                                </h3>
+                                <div id="callsign-top10-list" style="max-height: 450px; overflow: hidden;">
+                                    <div
+                                        style="padding: 10px; background: white; border-radius: 4px; font-size: 12px; color: #999; text-align: center;">
+                                        데이터 로딩 중...
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <!-- 오른쪽: 메인 콘텐츠 -->
+                        <div style="flex: 1; overflow-y: auto; padding: 0 20px 20px 0;">
+                            <div class="content-layout">
+                                <!-- 사이드바 controls (숨김) -->
+                                <aside class="sidebar" style="display: none;">
+                                    <div class="panel">
+                                        <h2><i class="fas fa-cog"></i> 설정 및 실행</h2>
+
+                                        <!-- 1. CLI 빠른 시뮬레이션 -->
+                                        <div class="section cli-simulation"
+                                            style="background: #f0f7ff; border: 2px solid #3498db; border-radius: 8px; padding: 15px;">
+                                            <h3 style="color: #2980b9; margin-top: 0;">1.유사호출 잠지 시뮬레이션</h3>
+
+                                            <input type="file" id="cli-file-input" accept=".csv,.xlsx,.xls"
+                                                style="display: none;">
+                                            <label for="cli-file-input" class="file-label" id="cli-drop-zone"
+                                                style="margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease;">
+                                                <i class="fas fa-cloud-upload-alt"
+                                                    style="font-size: 20px; margin-bottom: 5px;"></i>
+                                                <span style="font-weight: 500;">파일 선택 또는 드래그</span>
+                                                <span style="font-size: 11px; color: #7f8c8d; margin-top: 4px;">CSV,
+                                                    XLSX,
+                                                    XLS 파일
+                                                    지원</span>
+                                            </label>
+                                            <div id="cli-selected-file"
+                                                style="display: none; align-items: center; gap: 8px; padding: 10px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; margin-bottom: 10px;">
+                                                <i class="fas fa-check-circle"
+                                                    style="color: #27ae60; font-size: 16px;"></i>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">선택된
+                                                        파일:
+                                                    </div>
+                                                    <div id="cli-filename"
+                                                        style="font-size: 13px; font-weight: 600; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    </div>
+                                                </div>
+                                                <button id="cli-remove-file"
+                                                    style="background: none; border: none; color: #e74c3c; cursor: pointer; padding: 4px 8px; font-size: 16px; line-height: 1;"
+                                                    title="파일 제거">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </button>
+                                            </div>
+
+                                            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                                                <button id="cli-run-btn" class="btn btn-success" disabled
+                                                    style="flex: 1; font-size: 13px; padding: 10px;">
+                                                    <i class="fas fa-bolt"></i> 적용
+                                                </button>
+                                                <button id="cli-delete-date-btn" class="btn"
+                                                    style="flex: 1; background: #f39c12; color: white; font-size: 13px; padding: 10px; cursor: pointer;">
+                                                    <i class="fas fa-trash-alt"></i> 입력 일자 삭제
+                                                </button>
+                                                <button id="cli-delete-all-btn" class="btn"
+                                                    style="flex: 1; background: #e74c3c; color: white; font-size: 13px; padding: 10px; cursor: pointer;">
+                                                    <i class="fas fa-ban"></i> 전체 삭제
+                                                </button>
+                                            </div>
+
+                                            <!-- 삭제 모달 -->
+                                            <div id="delete-modal"
+                                                style="display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; flex-direction: column; align-items: center; justify-content: center;">
+                                                <div
+                                                    style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 350px;">
+                                                    <h3 id="delete-modal-title" style="margin-top: 0; color: #2c3e50;">
+                                                    </h3>
+                                                    <p id="delete-modal-message"
+                                                        style="color: #666; margin-bottom: 15px;">
+                                                    </p>
+
+                                                    <!-- 날짜 선택 (입력 일자 삭제용) -->
+                                                    <div id="delete-date-picker-container"
+                                                        style="display: none; margin-bottom: 15px;">
+                                                        <label
+                                                            style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">삭제할
+                                                            날짜 선택:</label>
+                                                        <input type="date" id="delete-target-date"
+                                                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                                                    </div>
+
+                                                    <div style="display: flex; gap: 8px;">
+                                                        <button id="delete-confirm-btn" class="btn"
+                                                            style="flex: 1; background: #e74c3c; color: white; cursor: pointer; padding: 8px;">
+                                                            삭제
+                                                        </button>
+                                                        <button id="delete-cancel-btn" class="btn"
+                                                            style="flex: 1; background: #95a5a6; color: white; cursor: pointer; padding: 8px;">
+                                                            취소
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="cli-status" class="status-message" style="margin-top: 10px;"></div>
+
+                                            <!-- CLI 진행률 -->
+                                            <div id="cli-progress-container" style="display: none; margin-top: 10px;">
+                                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
+                                                    <span id="cli-progress-text">처리 중...</span>
+                                                </div>
+                                                <div
+                                                    style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+                                                    <div id="cli-progress-bar"
+                                                        style="height: 100%; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%); width: 0%; transition: width 0.3s;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. 데이터 업로드 (숨김) -->
+                                        <div class="section file-upload" style="display: none;">
+                                            <h3>1. 데이터 업로드</h3>
+                                            <div class="filter-group">
+                                                <label>업로드 모드:</label>
+                                                <div class="radio-group"
+                                                    style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                                    <label><input type="radio" name="upload-mode" value="replace"
+                                                            checked>
+                                                        덮어쓰기
+                                                        (초기화)</label>
+                                                    <label><input type="radio" name="upload-mode" value="append"> 이어쓰기
+                                                        (누적)</label>
+                                                </div>
+                                            </div>
+
+                                            <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+                                            <label for="file-input" class="file-label" id="drop-zone">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>클릭 또는 파일 드래그</span>
+                                            </label>
+                                            <div id="upload-status" class="status-message"></div>
+
+                                            <!-- 업로드 진행률 표시 (숨김 상태로 시작) -->
+                                            <div id="upload-progress-container"
+                                                style="display: none; margin-top: 10px;">
+                                                <div class="progress-bar-bg"
+                                                    style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                                    <div id="upload-progress-bar"
+                                                        style="width: 0%; height: 100%; background: #3498db; transition: width 0.3s;">
+                                                    </div>
+                                                </div>
+                                                <div id="upload-progress-text"
+                                                    style="font-size: 12px; color: #666; text-align: right; margin-top: 5px;">
+                                                    0%
+                                                </div>
+                                            </div>
+
+                                            <button id="upload-btn" class="btn btn-primary" style="margin-top: 10px;"
+                                                disabled>
+                                                <i class="fas fa-upload"></i> 파일 업로드
+                                            </button>
+                                        </div>
+
+                                        <!-- 2. 단순 결과 조회 -->
+                                        <div class="section simulation">
+                                            <h3>2. 단순 결과 조회</h3>
+
+                                            <div class="filter-group" style="display: none;">
+                                                <label for="min-overlap-input"
+                                                    style="margin-bottom: 0; min-width: 100px;">공존시간
+                                                    (분):</label>
+                                                <input type="number" id="min-overlap-input" value="2" min="1" step="1"
+                                                    style="width: 100px;">
+                                            </div>
+
+                                            <div style="display: none;">
+                                                <button id="simulate-btn" class="btn btn-success" disabled>
+                                                    <i class="fas fa-play"></i> 시뮬레이션 실행
+                                                </button>
+                                                <div id="estimated-time-display"
+                                                    style="display: none; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; border-left: 4px solid #4CAF50;">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 2px;">예상 소요
+                                                        시간
+                                                    </div>
+                                                    <div style="font-size: 18px; font-weight: bold; color: #2e7d32;">
+                                                        <span id="estimated-time-text">-</span>
+                                                    </div>
+                                                    <div style="font-size: 11px; color: #999; margin-top: 2px;">
+                                                        <span id="estimated-pairs-text">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="simulation-status" class="status-message"></div>
+
+                                            <!-- 시뮬레이션 프로그레스 바 -->
+                                            <div id="simulation-progress-container"
+                                                style="display: none; margin-top: 15px;">
+                                                <div
+                                                    style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                                    <span style="font-size: 13px; color: #666;">진행률:</span>
+                                                    <span id="simulation-progress-text"
+                                                        style="font-size: 13px; color: #666; font-weight: 600;">0%</span>
+                                                </div>
+                                                <div
+                                                    style="width: 100%; height: 25px; background: #f0f0f0; border-radius: 4px; overflow: hidden; border: 1px solid #ddd;">
+                                                    <div id="simulation-progress-bar"
+                                                        style="height: 100%; background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%); width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                                        <span id="simulation-progress-percent"
+                                                            style="color: white; font-size: 12px; font-weight: 600;"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- 날짜 범위 선택 (달력) -->
+                                            <div class="filter-group"
+                                                style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">조회
+                                                    기간</label>
+
+                                                <!-- 빠른 선택 버튼 -->
+                                                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                                                    <button id="quick-date-today" class="btn"
+                                                        style="flex: 1; padding: 6px 8px; font-size: 12px; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; cursor: pointer; transition: all 0.2s;">
+                                                        <i class="fas fa-calendar-day"></i> 오늘
+                                                    </button>
+                                                    <button id="quick-date-yesterday" class="btn"
+                                                        style="flex: 1; padding: 6px 8px; font-size: 12px; background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; cursor: pointer; transition: all 0.2s;">
+                                                        <i class="fas fa-calendar-minus"></i> 어제
+                                                    </button>
+                                                </div>
+
+                                                <!-- 시작일자 -->
+                                                <label
+                                                    style="display: block; margin-bottom: 4px; font-size: 12px; color: #666; font-weight: 500;">시작일자</label>
+                                                <input type="date" id="start-date-picker"
+                                                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 12px;">
+
+                                                <!-- 종료일자 -->
+                                                <label
+                                                    style="display: block; margin-bottom: 4px; font-size: 12px; color: #666; font-weight: 500;">종료일자</label>
+                                                <input type="date" id="end-date-picker"
+                                                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 8px;">
+
+                                                <!-- 기간 표시 및 경고 -->
+                                                <div
+                                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                                                    <span id="date-range-display"
+                                                        style="font-size: 12px; color: #666;">범위:
+                                                        0일</span>
+                                                    <span id="date-range-warning"
+                                                        style="font-size: 11px; color: #d32f2f; font-weight: bold; display: none;">⚠️
+                                                        최대 7일까지만 조회 가능</span>
+                                                </div>
+
+                                                <!-- 기존 호환성을 위한 숨겨진 필드 -->
+                                                <input type="date" id="selected-date-picker" style="display: none;">
+
+                                                <button id="view-results-btn" class="btn btn-info" style="width: 100%;">
+                                                    <i class="fas fa-search"></i> 범위 조회
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- 3. 일자별 DB 초기화 -->
+                                        <div class="section"
+                                            style="background: #fff5f5; padding: 16px; border-radius: 8px; border: 1px solid #ffcccc;">
+                                            <h3
+                                                style="margin-bottom: 10px; color: #c0392b; display: flex; align-items: center; gap: 8px;">
+                                                <i class="fas fa-exclamation-triangle"></i> 3. 일자별 DB 초기화
+                                            </h3>
+
+                                            <!-- 경고 메시지 -->
+                                            <div
+                                                style="background: #ffe6e6; border-left: 4px solid #e74c3c; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                                                <div style="display: flex; align-items: start; gap: 8px;">
+                                                    <i class="fas fa-exclamation-circle"
+                                                        style="color: #e74c3c; margin-top: 2px;"></i>
+                                                    <div style="font-size: 12px; color: #c0392b; line-height: 1.5;">
+                                                        <strong>주의:</strong> 삭제된 데이터는 복구할 수 없습니다. 신중하게 선택하세요.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- 삭제 방식 선택 -->
+                                            <div style="margin-bottom: 15px;">
+                                                <label
+                                                    style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                                                    <input type="radio" name="delete-type" value="all" id="delete-all"
+                                                        style="margin-right: 5px;" checked>
+                                                    <span style="color: #2c3e50; margin-right: 15px;">전체 DB 삭제 </span>
+                                                    <input type="radio" name="delete-type" value="date"
+                                                        id="delete-by-date" style="margin-right: 5px;">
+                                                    <span style="color: #2c3e50;" margin-right: 12px;">일자별 삭제</span>
+                                                </label>
+
+                                            </div>
+
+                                            <!-- 삭제할 일자 선택 (초기에는 숨김) -->
+                                            <div id="delete-date-section" style="display: none; margin-bottom: 15px;">
+                                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">삭제할
+                                                    일자</label>
+                                                <input type="date" id="dashboard-delete-date-picker"
+                                                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                            </div>
+
+                                            <!-- 초기화 버튼 -->
+                                            <button id="delete-db-btn" class="btn btn-danger"
+                                                style="width: 100%; background-color: #c0392b; color: white; border: 1px solid #a93226; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">
+                                                <i class="fas fa-trash-alt"></i> 삭제 실행
+                                            </button>
+                                        </div>
+
+                                        <!-- 4. 위험도 분포 및 항공사 통계 (주석처리: 일자별 통계와 중복) -->
+                                        <!-- <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">4. 위험도 분포</h3>
+                                <div id="sidebar-risk-stats"
+                                    style="font-size: 13px; line-height: 2.2; margin-bottom: 15px;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div>
+
+                            <div class="section" style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-bottom: 15px; color: #2c3e50;">5. 항공사 별 유사호출</h3>
+                                <div id="sidebar-airline-stats"
+                                    style="font-size: 13px; line-height: 1.8; max-height: 200px; overflow-y: auto;">
+                                    <p style="color: #999; text-align: center;">데이터 로딩 중...</p>
+                                </div>
+                            </div> -->
+
+                                        <!-- 4. 결과 내보내기 (숨김) -->
+                                        <div class="section export" style="display: none;">
+                                            <h3>3. 결과 내보내기</h3>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button id="export-json-btn" class="btn btn-secondary" disabled>
+                                                    JSON
+                                                </button>
+                                                <button id="export-csv-btn-hidden" class="btn btn-secondary" disabled>
+                                                    CSV
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </aside>
+
+                                <!-- 메인 결과 영역 -->
+                                <div class="content-area">
+                                    <!-- 날짜 조회 UI -->
+                                    <div
+                                        style="background: #f8f9fa; padding: 15px 20px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 15px;">
+                                        <label style="font-weight: 600; color: #333; margin: 0;">📅 조회 기간:</label>
+                                        <div style="display: flex; gap: 10px; align-items: center;">
+                                            <button id="date-prev-btn"
+                                                style="background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                <i class="fas fa-chevron-left"></i> 이전
+                                            </button>
+                                            <input type="date" id="date-picker"
+                                                style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;"
+                                                value="2025-12-10">
+                                            <button id="date-next-btn"
+                                                style="background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                다음 <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                            <button id="date-range-btn"
+                                                style="display: none; background: #e8f4f8; border: 1px solid #3498db; color: #2980b9; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                범위 조회
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- 일자별 통계 아코디언 (범위 조회 시에만 표시) -->
+                                    <div id="daily-statistics-accordion" style="display: none; margin-bottom: 32px;">
+                                        <div style="margin-bottom: 16px;">
+                                            <h3 style="margin: 0 0 12px 0; color: #333;">📅 일자별 통계</h3>
+                                            <div id="accordion-items"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 통계 카드 -->
+                                    <div class="stats-section" style="margin-bottom: 12px;">
+                                        <!-- 통계 카드 Row 1 -->
+                                        <div class="stats-grid">
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon warning"><i
+                                                        class="fas fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div class="stat-content">
+                                                    <div class="stat-label">유사호출 감지</div>
+                                                    <div class="stat-value" id="stat-total-sims">0</div>
+                                                    <div class="stat-percent">
+                                                        <span>전체 항공편 대비</span>
+                                                        <span id="stat-total-sims-percentage"
+                                                            style="margin-left: 8px; font-size: 12px; font-weight: 600;">-</span>
+                                                    </div>
+                                                    <div
+                                                        style="margin-top: 8px; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; padding-top: 8px;">
+                                                        <div>├─ 동일 날짜: <span id="stat-same-date-sims">0</span>건</div>
+                                                        <div>└─ 크로스 날짜: <span id="stat-cross-date-sims">0</span>건</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon critical"><i class="fas fa-project-diagram"></i>
+                                                </div>
+                                                <div class="stat-content">
+                                                    <div class="stat-label">섹터 내 공존</div>
+                                                    <div class="stat-value" id="stat-filtered-sims">0</div>
+                                                </div>
+                                            </div>
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon safe"><i class="fas fa-plane-departure"></i></div>
+                                                <div class="stat-content">
+                                                    <div class="stat-label">분석된 항공편</div>
+                                                    <div class="stat-value" id="stat-total-flights">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 통계 카드 Row 2 (Advanced Stats) -->
+                                        <div class="stats-grid" style="margin-top: 16px;">
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon" style="background:#e8f6f3; color:#1abc9c;"><i
+                                                        class="fas fa-clock"></i></div>
+                                                <div class="stat-content">
+                                                    <div class="stat-label">피크 시간대 (UTC)</div>
+                                                    <div class="stat-value" id="stat-peak-time">-</div>
+                                                    <div class="stat-percent">가장 붐비는 시간</div>
+                                                </div>
+                                            </div>
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 12px;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon"
+                                                    style="background:#fef5e7; color:#f39c12; flex-shrink: 0;"><i
+                                                        class="fas fa-map-marker-alt"></i></div>
+                                                <div class="stat-content"
+                                                    style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                                                    <div class="stat-label">최다 빈도 섹터</div>
+                                                    <div class="stat-value" id="stat-top-sector"
+                                                        style="font-size: 28px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        -</div>
+                                                </div>
+                                            </div>
+                                            <div class="stat-card"
+                                                style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                                                <div class="stat-icon" style="background:#ebf5fb; color:#3498db;"><i
+                                                        class="fas fa-stopwatch"></i></div>
+                                                <div class="stat-content">
+                                                    <div class="stat-label">평균 공존 시간</div>
+                                                    <div class="stat-value" id="stat-avg-overlap">0분</div>
+                                                    <div class="stat-percent">평균 지속 시간</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 차트 섹션 -->
+                                    <div class="charts-section" style="margin-bottom: 12px;">
+                                        <div class="chart-container full-width"
+                                            style="max-height: 300px; overflow: hidden;">
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                                <h3 style="margin: 0;"><i class="fas fa-chart-bar"></i> 시간대별 현황분석 (UTC
+                                                    기준)
+                                                </h3>
+                                            </div>
+                                            <canvas id="timeChart"></canvas>
+                                            <canvas id="dailyChart" style="display: none;"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- 결과 테이블 -->
+                                    <div class="results-section">
+                                        <div
+                                            style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                            <h2 style="margin: 0;"><i class="fas fa-list-alt"></i> 유사호출 목록</h2>
+                                            <button id="export-csv-btn" class="btn btn-primary"
+                                                style="white-space: nowrap; padding: 6px 12px; font-size: 14px; width: fit-content; flex-shrink: 0;"
+                                                title="현재 결과를 CSV로 내보내기">
+                                                <i class="fas fa-download"></i> CSV 내보내기
+                                            </button>
+                                        </div>
+
+                                        <div class="table-controls">
+                                            <div
+                                                style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                                                <input type="text" id="search-input" class="search-box"
+                                                    placeholder="콜사인으로 검색..." style="width: 300px;">
+                                            </div>
+                                            <div style="display: flex; gap: 10px; align-items: center;">
+                                                <span class="result-count" id="result-count">결과: 0개</span>
+                                                <!-- 시간대 필터 인디케이터 -->
+                                                <div id="time-filter-indicator" style="display: none;">
+                                                    <span
+                                                        style="background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                                        UTC <strong id="time-filter-value"></strong>
+                                                        <button id="clear-time-filter-btn"
+                                                            style="background: none; border: none; color: white; cursor: pointer; margin-left: 6px; font-weight: bold;">✕</button>
+                                                    </span>
+                                                </div>
+                                                <!-- 일자별 필터 인디케이터 -->
+                                                <div id="date-filter-indicator"
+                                                    style="display: none; margin-left: 10px;">
+                                                    <span
+                                                        style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                                        📅 <strong id="date-filter-value"></strong>
+                                                        <button id="clear-date-filter-btn"
+                                                            style="background: none; border: none; color: white; cursor: pointer; margin-left: 6px; font-weight: bold;">✕</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="table-wrapper"
+                                            style="max-height: 800px; overflow-y: auto; position: relative;">
+                                            <table class="results-table">
+                                                <thead
+                                                    style="position: sticky; top: 0; background: #2c3e50; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    <tr>
+                                                        <th data-sort="callsign1"
+                                                            style="cursor: pointer; user-select: none; position: relative; color: #fff; min-width: 160px;">
+                                                            콜사인1 EOBD EOBT <i class="fas fa-sort"
+                                                                style="opacity: 0.5; font-size: 11px; margin-left: 4px;"></i>
+                                                        </th>
+                                                        <th data-sort="callsign2"
+                                                            style="cursor: pointer; user-select: none; position: relative; color: #fff; min-width: 160px;">
+                                                            콜사인2 EOBD EOBT <i class="fas fa-sort"
+                                                                style="opacity: 0.5; font-size: 11px; margin-left: 4px;"></i>
+                                                        </th>
+                                                        <th data-sort="similarity"
+                                                            style="cursor: pointer; user-select: none; position: relative; color: #fff; min-width: 130px;">
+                                                            유사도 레벨 <i class="fas fa-sort"
+                                                                style="opacity: 0.5; font-size: 11px; margin-left: 4px;"></i>
+                                                        </th>
+                                                        <th style="color: #fff; min-width: 250px;">섹터 정보</th>
+                                                        <th data-sort="overlap"
+                                                            style="cursor: pointer; user-select: none; position: relative; color: #fff; min-width: 100px;">
+                                                            총 공존 시간 <i class="fas fa-sort"
+                                                                style="opacity: 0.5; font-size: 11px; margin-left: 4px;"></i>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="table-body">
+                                                    <tr>
+                                                        <td colspan="5" class="empty-state">데이터를 업로드하고 시뮬레이션을 실행하세요</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- 페이지네이션 (숨김) -->
+                                        <div class="pagination-controls"
+                                            style="display: none; justify-content: center; margin-top: 15px; gap: 10px; align-items: center;">
+                                            <button id="prev-page-btn" class="btn btn-secondary" disabled>
+                                                <i class="fas fa-chevron-left"></i> 이전
+                                            </button>
+                                            <span id="page-info"
+                                                style="font-size: 14px; font-weight: bold; white-space: nowrap; min-width: 80px; text-align: center;">1
+                                                / 1</span>
+                                            <button id="next-page-btn" class="btn btn-secondary" disabled>
+                                                다음 <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 뷰 2: 기간 분석 -->
+                <div id="period-analysis-view" class="view-section" style="display: none;">
+                    <div class="period-wrapper">
+                        <section class="period-header">
+                            <div>
+                                <h2><i class="fas fa-chart-line"></i> 기간 분석</h2>
+                                <p>지정한 기간 동안의 추세를 다차원으로 확인하세요.</p>
+                            </div>
+                            <div class="period-controls">
+                                <div class="range-inputs">
+                                    <label>시작일</label>
+                                    <input type="date" id="period-start-date">
+                                </div>
+                                <div class="range-inputs">
+                                    <label>종료일</label>
+                                    <input type="date" id="period-end-date">
+                                </div>
+                                <div class="quick-range-buttons">
+                                    <button type="button" id="period-quick-7d" class="btn btn-secondary">최근 7일</button>
+                                    <button type="button" id="period-quick-14d" class="btn btn-secondary">최근
+                                        14일</button>
+                                    <button type="button" id="period-quick-30d" class="btn btn-secondary">최근
+                                        30일</button>
+                                </div>
+                                <div class="controls-actions">
+                                    <button id="period-query-btn" class="btn btn-primary"><i class="fas fa-search"></i>
+                                        조회</button>
+                                    <button id="period-reset-btn" class="btn btn-secondary"><i
+                                            class="fas fa-rotate"></i> 초기화</button>
+                                </div>
+                            </div>
+                            <div id="period-status" class="period-status hidden">기간을 선택하면 통계가 표시됩니다.</div>
+                        </section>
+
+                        <section class="period-kpi-grid">
+                            <article class="period-kpi-card">
+                                <h3>총 항공편</h3>
+                                <p class="kpi-value" id="period-total-flights">-</p>
+                                <span class="kpi-muted">기간 내 분석된 항공편</span>
+                            </article>
+                            <article class="period-kpi-card">
+                                <h3>감지율</h3>
+                                <p class="kpi-value" id="period-detection-rate">-</p>
+                                <span class="kpi-pill" id="period-rate-grade">-</span>
+                            </article>
+                            <article class="period-kpi-card">
+                                <h3>위험 레벨 분포</h3>
+                                <ul class="level-breakdown" id="period-level-breakdown">
+                                    <li>L5 <span>-</span></li>
+                                    <li>L4 <span>-</span></li>
+                                    <li>L3 <span>-</span></li>
+                                </ul>
+                            </article>
+                            <article class="period-kpi-card">
+                                <h3>피크 시간</h3>
+                                <p class="kpi-value" id="period-peak-hour">-</p>
+                                <span class="kpi-muted" id="period-peak-desc">최다 겹침 시간</span>
+                            </article>
+                        </section>
+
+
+                        <!-- 1. Daily Chart (Full Width) -->
+                        <article class="chart-card" style="margin-bottom: 20px;">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-layer-group"></i> 일자별 등급 현황</h3>
+                                <small>막대를 클릭하면 하단 표가 필터링됩니다.</small>
+                            </div>
+                            <div class="chart-placeholder" id="period-daily-chart">Stacked Bar Placeholder</div>
+                        </article>
+
+                        <!-- 2. Heatmap (Full Width) -->
+                        <article class="chart-card period-heatmap-container"
+                            style="margin-bottom: 20px; height: 500px;">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-fire"></i> 시간대별 위험 밀도</h3>
+                                <small>요일 × 시간대 히트맵 (스크롤 가능)</small>
+                            </div>
+                            <div class="heatmap-scroll-area" id="period-heatmap">
+                                <!-- Table injected here by JS -->
+                                Heatmap Placeholder
+                            </div>
+                        </article>
+
+                        <!-- 3. Insights Row (2 Columns) -->
+                        <section class="period-insights-row">
+                            <article class="insight-card">
+                                <header>
+                                    <h3><i class="fas fa-route"></i> 위험 노선 Top5</h3>
+                                    <span>출발-도착 조합별 감지 건수</span>
+                                </header>
+                                <ol id="period-route-toplist">
+                                    <li>데이터 로딩 중...</li>
+                                </ol>
+                            </article>
+
+                            <article class="insight-card">
+                                <header>
+                                    <h3><i class="fas fa-plane-departure"></i> 항공사별 위험도</h3>
+                                    <span>항공사별 고위험(L5/L4) 비율</span>
+                                </header>
+                                <ol id="period-airline-toplist">
+                                    <li>데이터 로딩 중...</li>
+                                </ol>
+                            </article>
+                        </section>
+
+
+                        <section class="period-table-section">
+                            <div class="table-header">
+                                <div>
+                                    <h3><i class="fas fa-table"></i> 일자별 상세</h3>
+                                    <p>각 날짜 행을 선택하면 드릴다운할 수 있도록 확장할 예정입니다.</p>
+                                </div>
+                                <div class="table-actions">
+                                    <button type="button" id="period-export-csv" class="btn btn-secondary"><i
+                                            class="fas fa-download"></i> CSV</button>
+                                    <button type="button" id="period-export-json" class="btn btn-secondary"><i
+                                            class="fas fa-download"></i> JSON</button>
+                                </div>
+                            </div>
+                            <div class="period-table-container">
+                                <table class="period-table">
+                                    <thead>
+                                        <tr>
+                                            <th>날짜</th>
+                                            <th>항공편</th>
+                                            <th>감지 건수</th>
+                                            <th>감지율</th>
+                                            <th>피크 시간</th>
+                                            <th>우세 레벨</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="period-comparison-table">
+                                        <tr>
+                                            <td colspan="6" class="placeholder-cell">기간을 선택하고 조회를 눌러 데이터를 확인하세요.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="period-pagination">
+                                <button id="period-prev-page" class="btn-secondary" disabled><i
+                                        class="fas fa-chevron-left"></i> 이전</button>
+                                <span id="period-page-info">1 / 1</span>
+                                <button id="period-next-page" class="btn-secondary" disabled>다음 <i
+                                        class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- 뷰 3: CSV 관리 -->
+                <div id="csv-management-view" class="view-section" style="display: none;">
+                    <div style="display: flex; gap: 20px; width: 100%; overflow: hidden; align-items: flex-start;">
+                        <!-- 왼쪽: 메뉴 -->
+                        <aside
+                            style="width: 280px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid #e0e0e0; padding: 15px; background: #fafafa;">
+                            <!-- 1. 업로드 가이드 -->
+                            <div style="margin-bottom: 20px;">
+                                <h3
+                                    style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; padding-bottom: 8px; border-bottom: 2px solid #3498db;">
+                                    <i class="fas fa-info-circle"></i> 업로드 가이드
+                                </h3>
+                                <div
+                                    style="background: white; padding: 12px; border-radius: 4px; font-size: 12px; color: #666; line-height: 1.6;">
+                                    <div style="margin-bottom: 10px;">
+                                        <strong style="color: #2c3e50;">지원 형식:</strong><br>
+                                        CSV, XLSX, XLS
+                                    </div>
+                                    <div style="margin-bottom: 10px;">
+                                        <strong style="color: #2c3e50;">파일 크기:</strong><br>
+                                        최대 16MB
+                                    </div>
+                                    <div>
+                                        <strong style="color: #2c3e50;">필수 컬럼:</strong><br>
+                                        Callsign, EOBD, EOBT,<br>
+                                        From, To, Sector
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. 최근 업로드 -->
+                            <div style="margin-bottom: 20px;">
+                                <h3
+                                    style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; padding-bottom: 8px; border-bottom: 2px solid #27ae60;">
+                                    <i class="fas fa-history"></i> 현재 데이터
+                                </h3>
+                                <div id="csv-current-data"
+                                    style="background: white; padding: 12px; border-radius: 4px; font-size: 12px; color: #666;">
+                                    <div style="text-align: center; color: #999; padding: 10px;">
+                                        데이터 로드 중...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. 주의사항 -->
+                            <div>
+                                <h3
+                                    style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #2c3e50; padding-bottom: 8px; border-bottom: 2px solid #e74c3c;">
+                                    <i class="fas fa-exclamation-triangle"></i> 주의사항
+                                </h3>
+                                <div
+                                    style="background: #ffebee; padding: 12px; border-radius: 4px; border-left: 4px solid #e74c3c; font-size: 11px; color: #c62828; line-height: 1.5;">
+                                    • 파일 업로드 시 기존 데이터가 초기화됩니다<br>
+                                    • 삭제 작업은 되돌릴 수 없습니다<br>
+                                    • 대용량 파일은 처리 시간이 오래 걸릴 수 있습니다
+                                </div>
+                            </div>
+                        </aside>
+
+                        <!-- 오른쪽: 메인 콘텐츠 -->
+                        <div style="flex: 1; overflow-y: auto; padding: 0 20px 20px 0;">
+                            <div style="max-width: 800px;">
+                                <!-- 제목 -->
+                                <h2 style="margin: 0 0 20px 0; color: #2c3e50;">
+                                    <i class="fas fa-file-csv"></i> CSV 데이터 관리
+                                </h2>
+
+                                <!-- 0. 샘플 파일 다운로드 -->
+                                <div
+                                    style="background: #f0f8ff; border: 1px solid #3498db; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                                    <i class="fas fa-download" style="font-size: 24px; color: #3498db;"></i>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;">샘플 파일로 시작하기
+                                        </div>
+                                        <div style="font-size: 12px; color: #666;">컬럼 구조와 샘플 데이터가 포함된 CSV 파일을 다운로드하여
+                                            데이터를 입력하세요</div>
+                                    </div>
+                                    <button id="download-sample-csv"
+                                        style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; white-space: nowrap; transition: background 0.3s;">
+                                        <i class="fas fa-download" style="margin-right: 6px;"></i> 샘플 다운로드
+                                    </button>
+                                </div>
+
+                                <!-- 1. 파일 업로드 섹션 -->
+                                <div
+                                    style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">
+                                        <i class="fas fa-cloud-upload-alt"></i> 파일 업로드
+                                    </h3>
+
+                                    <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls"
+                                        style="display: none;">
+                                    <label for="csv-file-input" id="csv-drop-zone"
+                                        style="margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease; display: block; border: 2px dashed #3498db; border-radius: 8px; padding: 30px; text-align: center; background: #f0f7ff;">
+                                        <i class="fas fa-cloud-upload-alt"
+                                            style="font-size: 32px; color: #3498db; margin-bottom: 10px; display: block;"></i>
+                                        <span style="font-weight: 600; color: #2980b9; display: block;">파일을 선택하거나
+                                            드래그하세요</span>
+                                        <span
+                                            style="font-size: 12px; color: #7f8c8d; margin-top: 8px; display: block;">CSV,
+                                            XLSX,
+                                            XLS 파일 지원 (최대 16MB)</span>
+                                    </label>
+
+                                    <div id="csv-selected-file"
+                                        style="display: none; align-items: center; gap: 10px; padding: 12px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; margin-bottom: 15px;">
+                                        <i class="fas fa-check-circle" style="color: #27ae60; font-size: 18px;"></i>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-size: 11px; color: #666; margin-bottom: 2px;">선택된 파일:</div>
+                                            <div id="csv-filename"
+                                                style="font-size: 13px; font-weight: 600; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            </div>
+                                        </div>
+                                        <button id="csv-remove-file"
+                                            style="background: none; border: none; color: #e74c3c; cursor: pointer; padding: 4px 8px; font-size: 16px;">
+                                            <i class="fas fa-times-circle"></i>
+                                        </button>
+                                    </div>
+
+                                    <button id="csv-upload-btn" class="btn btn-success" disabled
+                                        style="width: 100%; padding: 12px; font-size: 14px; font-weight: 600;">
+                                        <i class="fas fa-bolt"></i> 업로드 및 분석
+                                    </button>
+
+                                    <div id="csv-status" class="status-message" style="margin-top: 15px;"></div>
+
+                                    <!-- 진행률 표시 -->
+                                    <div id="csv-progress-container" style="display: none; margin-top: 15px;">
+                                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
+                                            <span id="csv-progress-text">처리 중...</span>
+                                        </div>
+                                        <div
+                                            style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+                                            <div id="csv-progress-bar"
+                                                style="height: 100%; background: linear-gradient(90deg, #3498db 0%, #2980b9 100%); width: 0%; transition: width 0.3s;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. 데이터 삭제 섹션 -->
+                                <div
+                                    style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">
+                                        <i class="fas fa-trash-alt"></i> 데이터 관리
+                                    </h3>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <button id="csv-delete-date-btn" class="btn"
+                                            style="background: #f39c12; color: white; padding: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; font-size: 13px;">
+                                            <i class="fas fa-calendar-times"></i> 입력 일자 삭제
+                                        </button>
+                                        <button id="csv-delete-all-btn" class="btn"
+                                            style="background: #e74c3c; color: white; padding: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; font-size: 13px;">
+                                            <i class="fas fa-ban"></i> 전체 삭제
+                                        </button>
+                                    </div>
+
+                                    <div id="csv-delete-status" class="status-message" style="margin-top: 15px;"></div>
+                                </div>
+
+                                <!-- 3. 유사도 레벨 설명 섹션 -->
+                                <div
+                                    style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">
+                                        <i class="fas fa-info-circle"></i> 항공 호출부호 유사도 레벨 (ICAO 기준)
+                                    </h3>
+
+                                    <!-- LEVEL 5: 고위험 -->
+                                    <div style="margin-bottom: 20px;">
+                                        <div
+                                            style="background: #e74c3c; color: white; padding: 10px 12px; border-radius: 6px 6px 0 0; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span><i class="fas fa-exclamation-circle"></i> LEVEL 5 - 고위험
+                                                (Critical)</span>
+                                            <span style="font-size: 12px; opacity: 0.9;">범위: 90 ~ 100점</span>
+                                        </div>
+                                        <div style="border: 1px solid #e74c3c; border-top: none;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                                <thead>
+                                                    <tr style="background: #f9e5e1; border-bottom: 1px solid #e74c3c;">
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 80px; border-right: 1px solid #e74c3c;">
+                                                            레벨</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 100px; border-right: 1px solid #e74c3c;">
+                                                            점수</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 120px; border-right: 1px solid #e74c3c;">
+                                                            규칙명</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600;">
+                                                            상세 탐지 로직</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #e74c3c; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">5-1</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #e74c3c; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">97~100</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            항공사 유사<br>+ 숫자 동일</td>
+                                                        <td style="padding: 10px 12px; color: #555;">항공사 코드 유사(전치/샌드위치)
+                                                            + 숫자 부분이 100% 동일<br><span
+                                                                style="color: #999; font-size: 11px;">예: KAL123 vs
+                                                                KLA123</span></td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #e74c3c; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">5-2</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #e8675f; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">94~97</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            동일 항공사<br>+ Suffix 3</td>
+                                                        <td style="padding: 10px 12px; color: #555;">같은 항공사 + 마지막 3자리 숫자
+                                                            일치<br><span style="color: #999; font-size: 11px;">예: KAL1234
+                                                                vs KAL7234</span></td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #e74c3c; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">5-3</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #ed8a7d; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">91~94</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            동일 항공사<br>+ 시각 유사</td>
+                                                        <td style="padding: 10px 12px; color: #555;">같은 항공사 + 숫자 전체가 시각적
+                                                            혼동 패턴으로 구성<br><span style="color: #999; font-size: 11px;">예:
+                                                                0/O, 1/I/L, 5/S 혼동</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- LEVEL 4: 중위험 -->
+                                    <div style="margin-bottom: 20px;">
+                                        <div
+                                            style="background: #f39c12; color: white; padding: 10px 12px; border-radius: 6px 6px 0 0; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span><i class="fas fa-warning"></i> LEVEL 4 - 중위험 (Caution)</span>
+                                            <span style="font-size: 12px; opacity: 0.9;">범위: 65 ~ 89점</span>
+                                        </div>
+                                        <div style="border: 1px solid #f39c12; border-top: none;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                                <thead>
+                                                    <tr style="background: #fce5d0; border-bottom: 1px solid #f39c12;">
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 80px; border-right: 1px solid #f39c12;">
+                                                            레벨</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 100px; border-right: 1px solid #f39c12;">
+                                                            점수</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 120px; border-right: 1px solid #f39c12;">
+                                                            규칙명</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600;">
+                                                            상세 탐지 로직</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">4-1</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">85~89</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            숫자 위치<br>바뀜</td>
+                                                        <td style="padding: 10px 12px; color: #555;">숫자 구성은 같으나 순서가 하나만
+                                                            바뀜<br><span style="color: #999; font-size: 11px;">예: KAL123
+                                                                vs KAL132</span></td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">4-2</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f4ab34; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">82~85</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            양끝 일치<br>+ 가운데 유사</td>
+                                                        <td style="padding: 10px 12px; color: #555;">같은 항공사 + 첫/끝 숫자 동일
+                                                            + 가운데 시각적 유사<br><span
+                                                                style="color: #999; font-size: 11px;">예: KAL103 vs
+                                                                KAL183 (0/8 혼동)</span></td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">4-3</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f5bb51; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">75~82</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            한 자리<br>혼동</td>
+                                                        <td style="padding: 10px 12px; color: #555;">한 자리만 다르되, 청각적/시각적
+                                                            혼동 쌍에 해당<br><span style="color: #999; font-size: 11px;">예:
+                                                                KAL123 vs KAL125 (3→5), KAL183 vs KAL123 (8→3)</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #ecf0f1; background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">4-4</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f6ca6e; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">70~75</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            항공사 유사<br>+ 숫자 유사</td>
+                                                        <td style="padding: 10px 12px; color: #555;">항공사 유사(전치/샌드위치) +
+                                                            숫자가 청각/시각 혼동 패턴에 해당</td>
+                                                    </tr>
+                                                    <tr style="background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">4-5</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #f7d98b; color: #333; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">65~72</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            다른 항공사<br>+ 숫자 동일</td>
+                                                        <td style="padding: 10px 12px; color: #555;">항공사는 다르나 숫자 부분이 완전히
+                                                            동일<br><span style="color: #999; font-size: 11px;">예: KAL123
+                                                                vs AAR123 (항공사 상이하므로 혼동 가능성↓)</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- LEVEL 3: 저위험 -->
+                                    <div style="margin-bottom: 20px;">
+                                        <div
+                                            style="background: #27ae60; color: white; padding: 10px 12px; border-radius: 6px 6px 0 0; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span><i class="fas fa-check-circle"></i> LEVEL 3 - 저위험 (Notice)</span>
+                                            <span style="font-size: 12px; opacity: 0.9;">범위: 50 ~ 64점</span>
+                                        </div>
+                                        <div style="border: 1px solid #27ae60; border-top: none;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                                <thead>
+                                                    <tr style="background: #d5f4e6; border-bottom: 1px solid #27ae60;">
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 80px; border-right: 1px solid #27ae60;">
+                                                            레벨</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 100px; border-right: 1px solid #27ae60;">
+                                                            점수</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600; width: 120px; border-right: 1px solid #27ae60;">
+                                                            규칙명</th>
+                                                        <th
+                                                            style="padding: 10px 12px; text-align: left; color: #2c3e50; font-weight: 600;">
+                                                            상세 탐지 로직</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr style="background: #fff;">
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #27ae60; color: white; padding: 3px 6px; border-radius: 3px; font-weight: 600; font-size: 11px;">3-1</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1;">
+                                                            <span
+                                                                style="display: inline-block; background: #27ae60; color: white; padding: 4px 8px; border-radius: 3px; font-weight: 700; font-size: 12px;">50~64</span>
+                                                        </td>
+                                                        <td
+                                                            style="padding: 10px 12px; border-right: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">
+                                                            Leading<br>Zero 차이</td>
+                                                        <td style="padding: 10px 12px; color: #555;">수치적 값은 동일하나 표기만 다른
+                                                            경우<br><span style="color: #999; font-size: 11px;">예: KAL123
+                                                                vs KAL0123</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- 혼동 패턴 설명 -->
+                                    <div
+                                        style="background: #ecf0f1; padding: 12px; border-radius: 6px; font-size: 12px; color: #555; line-height: 1.7;">
+                                        <strong style="color: #2c3e50; display: block; margin-bottom: 8px;"><i
+                                                class="fas fa-lightbulb"></i> 혼동 패턴 기준 (ICAO Doc 9432,
+                                            EUROCONTROL)</strong>
+                                        <div style="margin-bottom: 8px;">
+                                            <strong style="color: #2c3e50;">청각적 혼동:</strong> (1↔9), (5↔9), (2↔3) |
+                                            (M↔N), (S↔F)<br>
+                                            <span style="color: #999; font-size: 11px;">→ 교신 시 무전기 노이즈 속에서 오청하기 쉬운
+                                                조합</span>
+                                        </div>
+                                        <div>
+                                            <strong style="color: #2c3e50;">시각적 혼동:</strong> (1↔I↔L), (0↔O↔8), (5↔S),
+                                            (2↔Z), (6↔G)<br>
+                                            <span style="color: #999; font-size: 11px;">→ 데이터 스트립이나 레이더 화면에서 착각하기 쉬운
+                                                조합</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 뷰 4: 전체 운항 정보 -->
+                <div id="all-flights-view" class="view-section" style="display: none;">
+                    <div class="panel" style="height: 100%; display: flex; flex-direction: column;">
+                        <!-- 상단 헤더 및 툴바 -->
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
+                            <h2 style="margin: 0;"><i class="fas fa-plane"></i> 전체 항공편 상세 정보</h2>
+
+                            <div class="toolbar-actions"
+                                style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
+                                <!-- 날짜 네비게이션 (달력) -->
+                                <div class="date-nav" style="display: flex; align-items: center; gap: 8px;">
+                                    <button id="all-flights-date-prev-btn"
+                                        style="background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                        <i class="fas fa-chevron-left"></i> 이전
+                                    </button>
+                                    <input type="date" id="all-flights-date-picker"
+                                        style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                                    <button id="all-flights-date-next-btn"
+                                        style="background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                        다음 <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <!-- 액션 버튼 그룹 -->
+                                <button id="all-flights-view-btn" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> 조회
+                                </button>
+                                <button id="all-flights-clear-filter-btn" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> 전체보기
+                                </button>
+                                <div style="width: 1px; height: 24px; background: #ddd; margin: 0 4px;"></div>
+                                <!-- 구분선 -->
+                                <button id="export-all-excel-btn" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> 엑셀저장
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper" style="flex: 1;">
+                            <table class="results-table" id="all-flights-table">
+                                <colgroup>
+                                    <col style="width: 4%">
+                                    <col style="width: 7%">
+                                    <col style="width: 8%">
+                                    <col style="width: 7%">
+                                    <col style="width: 12%">
+                                    <col style="width: 25%">
+                                    <col style="width: 25%">
+                                    <col style="width: 12%">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>번호</th>
+                                        <th>콜사인</th>
+                                        <th>날짜/시간 (EOBT)</th>
+                                        <th>출발/도착</th>
+                                        <th>기종/속도/고도</th>
+                                        <th>📍 지점별 통과시간</th>
+                                        <th>✈️ 섹터 진입/진출</th>
+                                        <th>유사도 레벨</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-flights-body">
+                                    <tr>
+                                        <td colspan="8" class="empty-state">데이터를 불러오는 중...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- 상세 정보 팝업 (Modal) -->
+            <div id="detail-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2><i class="fas fa-info-circle"></i> 상세 운항 정보 비교</h2>
+                    <div class="modal-body">
+                        <div class="flight-col">
+                            <h3 id="modal-title-1">항공편 1</h3>
+                            <div id="modal-info-1" class="flight-info-box"></div>
+                            <h4>지점별 통과 시간</h4>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>지점</th>
+                                            <th>통과시간</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modal-waypoint-table-1"></tbody>
+                                </table>
+                            </div>
+                            <h4>섹터 통과 시간</h4>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>섹터</th>
+                                            <th>진입</th>
+                                            <th>진출</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modal-table-1"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flight-col">
+                            <h3 id="modal-title-2">항공편 2</h3>
+                            <div id="modal-info-2" class="flight-info-box"></div>
+                            <h4>지점별 통과 시간</h4>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>지점</th>
+                                            <th>통과시간</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modal-waypoint-table-2"></tbody>
+                                </table>
+                            </div>
+                            <h4>섹터 통과 시간</h4>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>섹터</th>
+                                            <th>진입</th>
+                                            <th>진출</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modal-table-2"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 단일 항공편 상세 정보 팝업 (Modal) -->
+            <div id="single-flight-modal" class="modal">
+                <div class="modal-content single-flight-modal-content">
+                    <span class="close-modal" onclick="closeSingleFlightModal()">&times;</span>
+                    <h2><i class="fas fa-plane"></i> <span id="single-flight-title">항공편 상세 정보</span></h2>
+                    <div class="modal-body single-flight-body">
+                        <!-- 기본 정보 -->
+                        <div class="flight-info-section">
+                            <h3>기본 운항 정보</h3>
+                            <div id="single-flight-basic-info" class="flight-info-box"></div>
+                        </div>
+
+                        <!-- 경로 정보 -->
+                        <div class="flight-info-section">
+                            <h3>경로 및 성능</h3>
+                            <table class="data-table">
+                                <tr>
+                                    <td style="font-weight:bold; width:25%;">출발지:</td>
+                                    <td id="single-flight-dept"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:bold;">도착지:</td>
+                                    <td id="single-flight-dest"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:bold;">항로:</td>
+                                    <td id="single-flight-route" style="font-size:0.9em; color:#555;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:bold;">기종:</td>
+                                    <td id="single-flight-aircraft"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:bold;">속도/고도:</td>
+                                    <td id="single-flight-speed-alt"></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- 지점별 통과 시간 -->
+                        <div class="flight-info-section">
+                            <h3>📍 지점별 통과 시간</h3>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>지점</th>
+                                            <th>통과시간</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="single-flight-waypoint-table">
+                                        <tr>
+                                            <td colspan="2" style="text-align:center; color:#999;">지점 정보 없음</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 섹터 진입/진출 -->
+                        <div class="flight-info-section">
+                            <h3>✈️ 섹터 진입/진출</h3>
+                            <div class="table-wrapper mini-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>섹터</th>
+                                            <th>진입</th>
+                                            <th>진출</th>
+                                            <th>체류시간</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="single-flight-sector-table">
+                                        <tr>
+                                            <td colspan="4" style="text-align:center; color:#999;">섹터 정보 없음</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 유사호출 정보 -->
+                        <div class="flight-info-section" id="single-flight-similarity-section" style="display:none;">
+                            <h3>🔍 유사호출 감지 정보</h3>
+                            <div id="single-flight-similarity-info"
+                                style="padding: 12px; background: #fffbeb; border: 1px solid #fde047; border-radius: 6px; color: #92400e;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 닫기 버튼 -->
+                    <div style="text-align: right; padding: 15px; border-top: 1px solid #ddd;">
+                        <button class="btn btn-primary" onclick="closeSingleFlightModal()">
+                            <i class="fas fa-times"></i> 닫기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 뷰 5: 항공기 기종 관리 -->
+            <div id="aircraft-view" class="view-section">
+                <div id="aircraft-view-content" style="width: 100%;"></div>
+            </div>
+
+            <!-- 뷰 6: 관리자 라이선스 관리 -->
+            <div id="admin-view" class="view-section" style="display: none;">
+                <div style="padding: 20px; max-width: 900px; margin: 0 auto;">
+                    <h2 style="color: #2c3e50; margin-bottom: 30px;">
+                        <i class="fas fa-shield-alt"></i> 라이선스 관리
+                    </h2>
+
+                    <!-- 라이선스 생성 섹션 -->
+                    <div
+                        style="background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 18px;">
+                            <i class="fas fa-key"></i> 새로운 라이선스 생성
+                        </h3>
+
+                        <form id="license-generation-form" style="display: grid; gap: 15px;">
+                            <!-- 조직명 -->
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50;">
+                                    조직명 (Organization Name) *
+                                </label>
+                                <input type="text" id="license-org-name" placeholder="예: Samsung Airlines, ABC Company"
+                                    style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 14px;">
+                                <small style="color: #7f8c8d; margin-top: 4px; display: block;">
+                                    고객사 이름이나 단체명 입력
+                                </small>
+                            </div>
+
+                            <!-- 유효기간 -->
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50;">
+                                    유효기간 (일수) *
+                                </label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <input type="number" id="license-days" value="365" min="1" max="3650"
+                                            style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 14px;">
+                                        <small style="color: #7f8c8d; display: block; margin-top: 4px;">일 수</small>
+                                    </div>
+                                    <div>
+                                        <input type="text" id="license-expiry-display" disabled
+                                            style="width: 100%; padding: 10px; background: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 14px;">
+                                        <small style="color: #7f8c8d; display: block; margin-top: 4px;">만료 예상일</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 라이선스 정보 미리보기 -->
+                            <div
+                                style="background: #f0f8ff; border: 1px solid #3498db; border-radius: 6px; padding: 15px;">
+                                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 10px;">라이선스 정보 미리보기</div>
+                                <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                                    <div><strong>타입:</strong> Commercial (상업용)</div>
+                                    <div><strong>조직:</strong> <span id="preview-org">입력 대기 중...</span></div>
+                                    <div><strong>유효기간:</strong> <span id="preview-days">365</span>일</div>
+                                    <div><strong>만료일:</strong> <span id="preview-expiry">입력 대기 중...</span></div>
+                                </div>
+                            </div>
+
+                            <!-- 버튼 -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                                <button type="button" id="license-gen-btn"
+                                    style="background: #27ae60; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                    <i class="fas fa-download"></i> 라이선스 파일 생성
+                                </button>
+                                <button type="reset"
+                                    style="background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                    초기화
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 생성된 라이선스 정보 -->
+                    <div id="license-result-section"
+                        style="display: none; background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <h3 style="color: #27ae60; margin-bottom: 20px; font-size: 18px;">
+                            <i class="fas fa-check-circle"></i> 라이선스 생성 완료
+                        </h3>
+
+                        <div
+                            style="background: #e8f5e9; border: 1px solid #27ae60; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                            <div id="license-display-json"
+                                style="background: white; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #2c3e50; overflow-x: auto; max-height: 300px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button id="license-copy-btn"
+                                style="background: #3498db; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                <i class="fas fa-copy"></i> JSON 복사
+                            </button>
+                            <button id="license-download-btn"
+                                style="background: #27ae60; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                <i class="fas fa-download"></i> license.json 다운로드
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 뷰 7: 모델링 테스트 -->
+            <div id="test-view" class="view-section">
+                <div id="test-view-content" style="width: 100%;"></div>
+            </div>
+            </main>
+
+            <!-- 푸터 -->
+            <footer class="footer">
+                <p>유사호출 감시 시뮬레이션 시스템 v1.0 | Phase 5 Frontend</p>
+                <p id="footer-status">시스템 상태: 확인 중...</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/test-tab.js"></script>
+    <script src="js/aircraft-tab.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#081226"/>
+      <stop offset="1" stop-color="#0b263f"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g stroke="#1f3a56" stroke-width="1">
+    <path d="M0 60h800M0 120h800M0 180h800M0 240h800M0 300h800M0 360h800M0 420h800M0 480h800M0 540h800" opacity="0.45"/>
+    <path d="M80 0v600M160 0v600M240 0v600M320 0v600M400 0v600M480 0v600M560 0v600M640 0v600M720 0v600" opacity="0.45"/>
+  </g>
+  <g stroke="url(#trail)" stroke-width="4" stroke-linecap="round" opacity="0.7">
+    <path d="M120 520 C 220 440, 320 420, 460 350"/>
+    <path d="M220 140 C 360 200, 480 260, 620 200"/>
+  </g>
+  <g fill="#c5f6ff" opacity="0.85">
+    <path d="M460 350 l18 -4 l-6 14 z"/>
+    <path d="M620 200 l20 -2 l-8 16 z"/>
+    <path d="M320 430 l15 -6 l-4 15 z" opacity="0.6"/>
+  </g>
+  <g fill="#38bdf8" opacity="0.35">
+    <circle cx="160" cy="300" r="4"/>
+    <circle cx="520" cy="140" r="4"/>
+    <circle cx="680" cy="420" r="4"/>
+    <circle cx="300" cy="520" r="4"/>
+  </g>
+</svg>
