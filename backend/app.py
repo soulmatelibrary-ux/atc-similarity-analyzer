@@ -8,7 +8,7 @@ import platform
 import signal
 import time
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, send_file, session
+from flask import Flask, request, jsonify, send_file, session, make_response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
@@ -449,8 +449,31 @@ def serve_frontend(filename):
         return {"error": "Invalid path"}, 403
 
     if os.path.isfile(file_path):
+        # 파일 확장자에 따른 Content-Type 설정
+        mime_types = {
+            '.css': 'text/css',
+            '.js': 'application/javascript',
+            '.html': 'text/html',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.svg': 'image/svg+xml',
+            '.ico': 'image/x-icon',
+            '.woff': 'font/woff',
+            '.woff2': 'font/woff2',
+            '.ttf': 'font/ttf'
+        }
+
+        # 파일 확장자 확인
+        _, ext = os.path.splitext(file_path)
+        content_type = mime_types.get(ext.lower(), 'text/plain')
+
         with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
+            response = make_response(f.read())
+            response.headers['Content-Type'] = content_type
+            return response
 
     return {"error": f"File not found: {filename}"}, 404
 
