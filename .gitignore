@@ -51,12 +51,12 @@ venv.bak/
 ################################
 
 # SQLite 데이터베이스
-*.db
+# *.db  # 프로덕션 배포를 위해 주석 처리
 *.db-journal
 *.db-shm
 *.db-wal
-*.sqlite
-*.sqlite3
+# *.sqlite  # 프로덕션 배포를 위해 주석 처리
+# *.sqlite3  # 프로덕션 배포를 위해 주석 처리
 
 # 데이터베이스 백업
 database/.backups/
