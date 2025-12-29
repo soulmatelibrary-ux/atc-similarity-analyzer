@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_ADMIN_USERNAME = 'admin'
 DEFAULT_ADMIN_EMAIL = 'admin@system.local'
-DEFAULT_ADMIN_PASSWORD_HASH = 'pbkdf2:sha256:600000$I3SyXih4aupMjb6n$9fd1e457d9b27b9b51e3f1ea752b8e42f1cc01b733eb368e2e03c30fa29a77c0'
+DEFAULT_ADMIN_PASSWORD_HASH = 'pbkdf2:sha256:600000$7xQ9gH2nL5kM8pQr$2dF3bV4cK9xL6mN2pO5sR7uT8vW1yZ4aB6dE9fG2hJ'
 
 DEFAULT_USER_USERNAME = 'parkeungi21'
 DEFAULT_USER_EMAIL = 'parkeungi21@korea.kr'
