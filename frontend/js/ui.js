@@ -497,11 +497,8 @@ function attachEventListeners() {
             // 활성 상태 변경
             riskFilterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            // 필터 적용 - 현재 데이터를 다시 렌더링
-            const summaryTimeline = document.getElementById('summary-timeline');
-            if (summaryTimeline && summaryTimeline.lastData) {
-                applyRiskFilter(summaryTimeline.lastData);
-            }
+            // 필터 적용
+            applyRiskFilter();
         });
     });
 
@@ -5475,9 +5472,14 @@ function renderSummaryMatrix(data) {
 /**
  * 위험도 필터 적용
  */
-function applyRiskFilter(data) {
+function applyRiskFilter() {
     const activeFilter = document.querySelector('.risk-filter-btn.active');
     const selectedRisk = activeFilter ? activeFilter.dataset.risk : 'all';
+
+    console.log('🔍 Risk filter applied:', {
+        selectedRisk: selectedRisk,
+        activeButton: activeFilter?.textContent
+    });
 
     // 1. 매트릭스 셀 필터링
     const cells = document.querySelectorAll('.matrix-cell.risk-cell');
@@ -5502,8 +5504,11 @@ function applyRiskFilter(data) {
 
     // 2. Summary 플라이트 카드 필터링 (팝업 모달)
     const flightCards = document.querySelectorAll('.summary-flight-card');
-    flightCards.forEach(card => {
+
+    console.log('🎯 Flight cards found:', flightCards.length);
+    flightCards.forEach((card, index) => {
         const cardRisk = card.getAttribute('data-risk');
+        console.log(`  Card ${index}: data-risk="${cardRisk}"`);
 
         if (selectedRisk === 'all') {
             // 전체보기: 모든 카드 표시
@@ -5511,9 +5516,11 @@ function applyRiskFilter(data) {
         } else if (cardRisk === selectedRisk) {
             // 해당 위험도 카드만 표시
             card.style.display = '';
+            console.log(`    ✓ Showing (matched: ${cardRisk} === ${selectedRisk})`);
         } else {
             // 다른 위험도 카드는 숨김
             card.style.display = 'none';
+            console.log(`    ✗ Hiding (not matched: ${cardRisk} !== ${selectedRisk})`);
         }
     });
 }
@@ -5536,12 +5543,16 @@ function openSummaryFlightsModal(sectorName, timeRange, flights) {
         listContainer.innerHTML = '<div class="empty-state">해당 시간대에 유사호출이 없습니다.</div>';
     } else {
         let html = '';
-        flights.forEach(flight => {
+        console.log('📋 Rendering summary flights:', flights.length);
+        flights.forEach((flight, idx) => {
             const riskClass = getRiskClass(flight.similarity_level);
             const riskText = getRiskText(flight.similarity_level);
+            const riskLevel = getRiskLevel(flight.similarity_level);
+
+            console.log(`  Flight ${idx}: ${flight.callsign_1} vs ${flight.callsign_2} - Level: ${flight.similarity_level} → ${riskLevel}`);
 
             html += `
-                <div class="summary-flight-card" data-risk="${getRiskLevel(flight.similarity_level)}" onclick="openDetailModal(${flight.flight_id_1}, ${flight.flight_id_2}, '${flight.callsign_1}', '${flight.callsign_2}')">
+                <div class="summary-flight-card" data-risk="${riskLevel}" onclick="openDetailModal(${flight.flight_id_1}, ${flight.flight_id_2}, '${flight.callsign_1}', '${flight.callsign_2}')">
                     <div class="summary-flight-pair">
                         <div class="summary-flight-info">
                             <div class="summary-flight-callsign">${flight.callsign_1}</div>
@@ -5595,8 +5606,10 @@ function getRiskText(level) {
  * 위험도 레벨에서 위험도 수준 추출 (HIGH/MEDIUM/LOW)
  */
 function getRiskLevel(level) {
-    if (level.includes('LEVEL_5')) return 'HIGH';
-    if (level.includes('LEVEL_4')) return 'MEDIUM';
+    if (!level) return 'LOW';
+    const levelStr = String(level).toUpperCase();
+    if (levelStr.includes('LEVEL_5') || levelStr.includes('LEVEL 5') || levelStr.includes('HIGH')) return 'HIGH';
+    if (levelStr.includes('LEVEL_4') || levelStr.includes('LEVEL 4') || levelStr.includes('MEDIUM')) return 'MEDIUM';
     return 'LOW';
 }
 
