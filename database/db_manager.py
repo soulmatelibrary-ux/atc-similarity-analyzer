@@ -1029,3 +1029,86 @@ class DatabaseManager:
         }
 
         return result
+
+    # ========================================================================
+    # 참조 데이터 (Waypoints & Sector Boundaries)
+    # ========================================================================
+
+    def get_waypoints(self, fixpnt=None):
+        """경유지점 좌표 데이터 조회
+
+        Args:
+            fixpnt: 특정 경유지점명 (None이면 전체)
+
+        Returns:
+            list: 딕셔너리 형태의 경유지점 데이터
+        """
+        if fixpnt:
+            query = "SELECT * FROM waypoints WHERE fixpnt = ? ORDER BY enr_nm, seq"
+            results = self.execute_query(query, (fixpnt,))
+        else:
+            query = "SELECT * FROM waypoints ORDER BY enr_nm, seq"
+            results = self.execute_query(query)
+        return [dict(row) for row in results]
+
+    def get_all_waypoints_df(self):
+        """전체 경유지점을 pandas DataFrame으로 반환 (route_converter 호환)
+
+        Returns:
+            DataFrame: 경유지점 데이터 (enroute.xlsx 대체)
+        """
+        try:
+            import pandas as pd
+            waypoints = self.get_waypoints()
+            if not waypoints:
+                return pd.DataFrame()
+            return pd.DataFrame(waypoints)
+        except ImportError:
+            logger.warning("pandas not installed, returning raw data")
+            return self.get_waypoints()
+
+    def get_sector_boundaries(self, sector_id=None):
+        """섹터 경계 좌표 데이터 조회
+
+        Args:
+            sector_id: 특정 섹터ID (None이면 전체)
+
+        Returns:
+            list: 딕셔너리 형태의 섹터 경계 데이터
+        """
+        if sector_id:
+            query = "SELECT * FROM sector_boundaries WHERE sector_id = ? ORDER BY seq"
+            results = self.execute_query(query, (sector_id,))
+        else:
+            query = "SELECT * FROM sector_boundaries ORDER BY sector_id, seq"
+            results = self.execute_query(query)
+        return [dict(row) for row in results]
+
+    def get_sector_boundaries_dict(self):
+        """섹터 경계를 딕셔너리 형태로 반환 - Shapely Polygon 객체 반환 (sector1.xlsx 대체)
+
+        Returns:
+            dict: {sector_id: Polygon} - Shapely Polygon objects keyed by sector_id
+        """
+        from shapely.geometry import Polygon
+
+        boundaries = self.get_sector_boundaries()
+        sector_coords = {}
+
+        # Group coordinates by sector_id
+        for row in boundaries:
+            sector_id = row['sector_id']
+            if sector_id not in sector_coords:
+                sector_coords[sector_id] = []
+            sector_coords[sector_id].append((row['lon'], row['lat']))
+
+        # Convert to Polygon objects
+        result = {}
+        for sector_id, coords in sector_coords.items():
+            if len(coords) >= 3:  # Need at least 3 points for a valid polygon
+                try:
+                    result[sector_id] = Polygon(coords)
+                except Exception as e:
+                    logger.warning(f"Failed to create polygon for sector {sector_id}: {e}")
+
+        return result

@@ -532,21 +532,20 @@ def process_flight_plans(db_manager=None):
         db_manager: DatabaseManager 인스턴스 (선택사항)
     """
     # 1. Load Reference Data
-    # 기본 경로 설정
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    enroute_path = os.path.join(base_dir, 'data', 'enroute', 'enroute.xlsx')
-    sector_path = os.path.join(base_dir, 'data', 'sectors', 'sector1.xlsx')
-
-    # 절대 경로 존재 확인
-    if not os.path.exists(enroute_path):
-        print(f"Warning: enroute.xlsx not found at {enroute_path}")
+    if not db_manager:
+        print("Warning: db_manager not provided")
         return
 
-    if not os.path.exists(sector_path):
-        print(f"Warning: sector1.xlsx not found at {sector_path}")
+    from database.db_manager import DatabaseManager
+    db_manager = DatabaseManager()
+
+    # DB에서 경유지점 데이터 로드
+    enroute_df = db_manager.get_all_waypoints_df()
+    if enroute_df.empty:
+        print("Error: waypoints 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
         return
 
-    enroute_df, fix_col = route_converter.load_data(enroute_path)
+    fix_col = 'fixpnt'  # DB 컬럼명
 
     # Create coordinate map: FIX -> (LAT, LON)
     # Handle duplicates by taking first found (or average? First is safer)
@@ -616,8 +615,11 @@ def process_flight_plans(db_manager=None):
         print(msg)
         log_file.write(msg + '\n')
 
-    # Load Sectors (이미 위에서 경로 설정됨)
-    sectors = load_sectors(sector_path)
+    # Load Sectors from DB
+    sectors = db_manager.get_sector_boundaries_dict()
+    if not sectors:
+        print("Error: sector_boundaries 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
+        return
     print(f"Loaded Sectors: {list(sectors.keys())}")
 
     # DB ID 캐시 생성 (조회 속도 및 정확성 향상)

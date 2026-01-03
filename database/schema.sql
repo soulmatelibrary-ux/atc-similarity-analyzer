@@ -303,3 +303,37 @@ VALUES (
     '["*"]',
     1
 );
+
+-- ============================================================================
+-- 참조 데이터 테이블 (경유지점 및 섹터 경계)
+-- ============================================================================
+
+-- 경유지점 좌표 데이터 (enroute.xlsx 대체)
+CREATE TABLE IF NOT EXISTS waypoints (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    enr_nm TEXT,           -- 항로명
+    seq INTEGER,           -- 순서
+    fixpnt TEXT NOT NULL,  -- 경유지점명
+    lat REAL NOT NULL,     -- 위도
+    lon REAL NOT NULL,     -- 경도
+    stat TEXT,             -- 상태
+    sector TEXT,           -- 섹터
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_waypoints_fixpnt ON waypoints(fixpnt);
+CREATE INDEX IF NOT EXISTS idx_waypoints_enr_nm ON waypoints(enr_nm);
+
+-- 섹터 경계 좌표 데이터 (sector1.xlsx 대체)
+CREATE TABLE IF NOT EXISTS sector_boundaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_id TEXT NOT NULL,  -- 섹터 ID
+    seq INTEGER,              -- 순서
+    lat REAL NOT NULL,        -- 위도
+    lon REAL NOT NULL,        -- 경도
+    alt INTEGER,              -- 최소 고도
+    alt2 INTEGER,             -- 최대 고도
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_sector_boundaries_sector_id ON sector_boundaries(sector_id);

@@ -394,22 +394,18 @@ def process_flight_plans(db_manager=None):
     Args:
         db_manager: DatabaseManager 인스턴스 (선택사항)
     """
-    # 1. Load Reference Data
-    # 기본 경로 설정
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    enroute_path = os.path.join(base_dir, 'data', 'enroute', 'enroute.xlsx')
-    sector_path = os.path.join(base_dir, 'data', 'sectors', 'sector1.xlsx')
+    # 1. Load Reference Data from Database
+    if not db_manager:
+        from database.db_manager import DatabaseManager
+        db_manager = DatabaseManager()
 
-    # 절대 경로 존재 확인
-    if not os.path.exists(enroute_path):
-        print(f"Warning: enroute.xlsx not found at {enroute_path}")
+    # DB에서 경유지점 데이터 로드
+    enroute_df = db_manager.get_all_waypoints_df()
+    if enroute_df.empty:
+        print("Error: waypoints 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
         return
 
-    if not os.path.exists(sector_path):
-        print(f"Warning: sector1.xlsx not found at {sector_path}")
-        return
-
-    enroute_df, fix_col = route_converter.load_data(enroute_path)
+    fix_col = 'fixpnt'  # DB 컬럼명
 
     # Create coordinate map: FIX -> (LAT, LON)
     # Handle duplicates by taking first found (or average? First is safer)
@@ -479,8 +475,11 @@ def process_flight_plans(db_manager=None):
         print(msg)
         log_file.write(msg + '\n')
 
-    # Load Sectors (이미 위에서 경로 설정됨)
-    sectors = load_sectors(sector_path)
+    # Load Sectors from Database
+    sectors = load_sectors(db_manager)
+    if not sectors:
+        print("Error: sector_boundaries 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
+        return
     print(f"Loaded Sectors: {list(sectors.keys())}")
 
     total_flights = len(fp_df)
@@ -983,28 +982,25 @@ def process_flight_plans(db_manager=None):
     log_file.close()
     print("Log saved to process_log.txt")
 
-def load_sectors(file_path):
+def load_sectors(db_manager=None):
     """
-    Load sector polygons from Excel.
+    Load sector polygons from database.
     Returns dict: {SECTOR_ID: Polygon}
     """
     from shapely.geometry import Polygon
-    
+
+    if not db_manager:
+        from database.db_manager import DatabaseManager
+        db_manager = DatabaseManager()
+
     try:
-        # Load with header=1 based on inspection
-        df = pd.read_excel(file_path, header=1)
-        
-        sectors = {}
-        # Group by SECTOR_ID
-        for sector_id, group in df.groupby('SECTOR_ID'):
-            # Sort by SEQ just in case, though usually ordered
-            group = group.sort_values('SEQ')
-            points = list(zip(group['LON'], group['LAT']))
-            if len(points) >= 3:
-                sectors[sector_id] = Polygon(points)
-        return sectors
+        # DB에서 섹터 경계 데이터 로드
+        sectors_dict = db_manager.get_sector_boundaries_dict()
+        if not sectors_dict:
+            raise RuntimeError("sector_boundaries 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
+        return sectors_dict
     except Exception as e:
-        print(f"Error loading sectors: {e}")
+        logger.error(f"섹터 데이터 로드 오류: {e}")
         return {}
 
 def find_sector(lat, lon, sectors):

@@ -277,7 +277,7 @@ const AuthManager = (() => {
         const defaultTabBtn = document.querySelector(`.nav-tab[data-target="${DEFAULT_TAB_TARGET}"]`);
         const userRole = resolveUserRole(user);
         const isAdminUser = userRole === 'admin';
-        const shouldShowAircraft = userRole === 'guest' || isAdminUser;
+        const shouldShowAircraft = true; // 모든 사용자에게 공개
 
         if (aircraftTabBtn) {
             const isCurrentlyHidden = aircraftTabBtn.classList.contains('is-hidden');

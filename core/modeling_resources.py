@@ -16,9 +16,10 @@ def _build_coord_map(enroute_df, fix_col):
         if not fix or fix == "NAN":
             continue
         try:
-            lat = float(row["LAT"])
-            lon = float(row["LON"])
-        except (TypeError, ValueError):
+            # DB 컬럼명은 소문자 (lat, lon)
+            lat = float(row.get("lat") or row.get("LAT"))
+            lon = float(row.get("lon") or row.get("LON"))
+        except (TypeError, ValueError, KeyError):
             continue
         if fix not in coord_map:
             coord_map[fix] = (lat, lon)
@@ -28,22 +29,24 @@ def _build_coord_map(enroute_df, fix_col):
 @lru_cache(maxsize=1)
 def get_modeling_resources():
     """Load and cache reference datasets for waypoint and sector calculations."""
-    enroute_path = PROJECT_ROOT / "data" / "enroute" / "enroute.xlsx"
-    sector_path = PROJECT_ROOT / "data" / "sectors" / "sector1.xlsx"
+    from database.db_manager import DatabaseManager
 
-    if not enroute_path.exists():
-        raise FileNotFoundError(f"enroute.xlsx 파일을 찾을 수 없습니다: {enroute_path}")
-    if not sector_path.exists():
-        raise FileNotFoundError(f"sector1.xlsx 파일을 찾을 수 없습니다: {sector_path}")
+    db_manager = DatabaseManager()
 
-    enroute_df, fix_col = route_converter.load_data(str(enroute_path))
+    # DB에서 경유지점 데이터 로드
+    enroute_df = db_manager.get_all_waypoints_df()
+    if enroute_df.empty:
+        raise RuntimeError("waypoints 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
+
+    fix_col = 'fixpnt'  # DB 컬럼명
     coord_map = _build_coord_map(enroute_df, fix_col)
     if not coord_map:
         raise ValueError("경유 지점 좌표 데이터를 불러오지 못했습니다.")
 
-    sectors = load_sectors(str(sector_path))
+    # DB에서 섹터 경계 데이터 로드
+    sectors = db_manager.get_sector_boundaries_dict()
     if not sectors:
-        raise ValueError("섹터 데이터가 비어 있습니다. sector1.xlsx을 확인하세요.")
+        raise RuntimeError("sector_boundaries 테이블이 비어있습니다. 데이터베이스를 확인하세요.")
 
     return {
         "enroute_df": enroute_df,

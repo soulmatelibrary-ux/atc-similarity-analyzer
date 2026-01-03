@@ -41,13 +41,27 @@ def expand_route(df, fix_col, route_str):
     if not tokens:
         return []
 
+    # Normalize column names to uppercase for consistent access
+    # Handle both database (lowercase) and Excel (uppercase) column names
+    df = df.copy()
+    df.columns = df.columns.str.upper()
+
+    # Normalize fix_col to uppercase as well
+    fix_col_normalized = fix_col.upper()
+    if fix_col_normalized not in df.columns:
+        # Try to find the column case-insensitively
+        for col in df.columns:
+            if col.upper() == fix_col.upper():
+                fix_col_normalized = col
+                break
+
     expanded_route = []
-    
+
     # Iterate through tokens
     i = 0
     while i < len(tokens):
         token = tokens[i].upper()
-        
+
         # Check if token is an airway (exists in ENR_NM)
         # We only treat it as an airway if it's NOT the first or last item (needs start/end context)
         # AND if the previous item was a fix.
@@ -64,8 +78,8 @@ def expand_route(df, fix_col, route_str):
             # We need to handle potential duplicates or just take the first match
             # Ideally, specific airway + fix should be unique sequence
             
-            start_rows = airway_df[airway_df[fix_col] == start_fix]
-            end_rows = airway_df[airway_df[fix_col] == end_fix]
+            start_rows = airway_df[airway_df[fix_col_normalized] == start_fix]
+            end_rows = airway_df[airway_df[fix_col_normalized] == end_fix]
             
             if start_rows.empty or end_rows.empty:
                 # Cannot expand, just append the token as is (or handle error)
@@ -83,14 +97,14 @@ def expand_route(df, fix_col, route_str):
                 # Forward direction
                 segment = airway_df[(airway_df['SEQ'] > start_seq) & (airway_df['SEQ'] < end_seq)]
                 # Add intermediate points
-                intermediate = segment[fix_col].tolist()
+                intermediate = segment[fix_col_normalized].tolist()
                 expanded_route.extend(intermediate)
             else:
                 # Reverse direction
                 segment = airway_df[(airway_df['SEQ'] < start_seq) & (airway_df['SEQ'] > end_seq)]
                 # Sort descending for reverse
                 segment = segment.sort_values('SEQ', ascending=False)
-                intermediate = segment[fix_col].tolist()
+                intermediate = segment[fix_col_normalized].tolist()
                 expanded_route.extend(intermediate)
                 
             # We processed the airway. The loop will continue to 'end_fix' which is next.

@@ -169,7 +169,8 @@ AUTH_EXEMPT_PREFIXES = (
     '/api/health',
     '/api/sample',  # 샘플 파일 다운로드 (인증 불필요)
     '/api/admin',   # 관리자 기능 (개발 모드: 인증 불필요)
-    '/api/summary'  # 요약 탭 (인증 불필요)
+    '/api/summary', # 요약 탭 (인증 불필요)
+    '/api/test'     # 모델링 테스트 (개발 모드: 인증 불필요)
 )
 
 
@@ -1418,7 +1419,14 @@ def calculate_test_flight():
         get_modeling_resources.cache_clear()
         return jsonify({
             'status': 'error',
-            'message': '참조 데이터 파일(enroute.xlsx/sector1.xlsx)을 찾을 수 없습니다. 관리자에게 문의하세요.'
+            'message': str(e)
+        }), 500
+    except RuntimeError as e:
+        logger.error(f"참조 데이터 로드 오류: {e}")
+        get_modeling_resources.cache_clear()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500
     except Exception as e:
         logger.error(f"모델링 테스트 계산 실패: {str(e)}", exc_info=True)
