@@ -1727,30 +1727,32 @@ def get_summary_forecast():
             if sector_name not in SECTORS:
                 continue
 
-            # 시간 파싱
+            # 시간 파싱 (ISO 8601 형식: 2025-11-30T19:43:00)
             try:
                 overlap_start_str = row['overlap_start']
                 overlap_end_str = row['overlap_end']
 
-                # 시간 파싱 (HH:MM:SS 또는 HH:MM)
-                if len(overlap_start_str) == 8:  # HH:MM:SS
-                    start_parts = overlap_start_str.split(':')
-                    overlap_start_hour = int(start_parts[0])
-                    overlap_start_min = int(start_parts[1])
-                else:  # HH:MM
-                    start_parts = overlap_start_str.split(':')
-                    overlap_start_hour = int(start_parts[0])
-                    overlap_start_min = int(start_parts[1])
+                # T로 분리하여 시간 부분 추출
+                if 'T' in overlap_start_str:
+                    start_time_part = overlap_start_str.split('T')[1]  # '19:43:00'
+                else:
+                    start_time_part = overlap_start_str  # 이미 시간만 있음
 
-                if len(overlap_end_str) == 8:  # HH:MM:SS
-                    end_parts = overlap_end_str.split(':')
-                    overlap_end_hour = int(end_parts[0])
-                    overlap_end_min = int(end_parts[1])
-                else:  # HH:MM
-                    end_parts = overlap_end_str.split(':')
-                    overlap_end_hour = int(end_parts[0])
-                    overlap_end_min = int(end_parts[1])
-            except:
+                if 'T' in overlap_end_str:
+                    end_time_part = overlap_end_str.split('T')[1]  # '19:51:00'
+                else:
+                    end_time_part = overlap_end_str
+
+                # HH:MM:SS 또는 HH:MM 파싱
+                start_parts = start_time_part.split(':')
+                overlap_start_hour = int(start_parts[0])
+                overlap_start_min = int(start_parts[1])
+
+                end_parts = end_time_part.split(':')
+                overlap_end_hour = int(end_parts[0])
+                overlap_end_min = int(end_parts[1])
+            except Exception as e:
+                logger.debug(f"Time parsing error: {e}, start={row['overlap_start']}, end={row['overlap_end']}")
                 continue
 
             # 위험도 분석
