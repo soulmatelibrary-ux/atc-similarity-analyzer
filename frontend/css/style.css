@@ -2217,6 +2217,10 @@ body.theme-airspace:not([data-user-role="admin"]) #aircraft-view {
    Summary Flights Modal Styles
    ========================================================================== */
 
+#summary-flights-modal .modal-content {
+    max-width: 600px;
+}
+
 #summary-flights-modal .modal-subtitle {
     display: flex;
     gap: 20px;
