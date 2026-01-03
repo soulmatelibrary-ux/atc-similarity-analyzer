@@ -443,7 +443,10 @@ function attachEventListeners() {
             targetView.classList.add('active');
 
             // 뷰별 display 설정
-            if (targetId === 'dashboard-view') {
+            if (targetId === 'summary-view') {
+                targetView.style.display = 'block'; // Summary view는 block
+                loadSummaryView();
+            } else if (targetId === 'dashboard-view') {
                 targetView.style.display = 'flex';
             } else if (targetId === 'period-analysis-view') {
                 targetView.style.display = 'flex';
@@ -464,6 +467,24 @@ function attachEventListeners() {
                 // 관리자 라이선스 관리 초기화
                 setupAdminLicenseManagement();
             }
+        });
+    });
+
+    // 요약 탭 새로고침 대조
+    const refreshSummaryBtn = document.getElementById('refresh-summary-btn');
+    if (refreshSummaryBtn) {
+        refreshSummaryBtn.addEventListener('click', loadSummaryView);
+    }
+
+    // 요약 탭 시간 오프셋 버튼
+    const offsetBtns = document.querySelectorAll('.offset-btn');
+    offsetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 활성 상태 변경
+            offsetBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // 데이터 로드
+            loadSummaryView();
         });
     });
 
@@ -5213,4 +5234,155 @@ document.addEventListener('DOMContentLoaded', function () {
             closeBtn.addEventListener('click', closeSingleFlightModal);
         }
     }
+
+    // 페이지 로드 시 Summary 탭이 활성화되어 있으면 데이터 로드
+    const summaryView = document.getElementById('summary-view');
+    if (summaryView && summaryView.classList.contains('active')) {
+        loadSummaryView();
+    }
 });
+
+/**
+ * 요약 탭 (실시간 예측) 데이터 로드 및 렌더링
+ */
+async function loadSummaryView() {
+    const timelineContainer = document.getElementById('summary-timeline');
+    const lastUpdateEl = document.getElementById('summary-last-update');
+
+    if (!timelineContainer) return;
+
+    // 로딩 상태 표시
+    timelineContainer.innerHTML = `
+        <div class="timeline-loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>데이터 분석 중...</p>
+        </div>
+    `;
+
+    try {
+        // 선택된 오프셋 확인
+        let offsetMinutes = 0;
+        const activeOffsetBtn = document.querySelector('.offset-btn.active');
+        if (activeOffsetBtn) {
+            offsetMinutes = parseInt(activeOffsetBtn.dataset.offset || '0');
+        }
+
+        // base_time 계산 (현재 시간 + 오프셋)
+        const baseTime = new Date();
+        baseTime.setMinutes(baseTime.getMinutes() + offsetMinutes);
+        const baseTimeStr = baseTime.toISOString();
+
+        const response = await fetch(`${API_BASE_URL}/summary/forecast?base_time=${encodeURIComponent(baseTimeStr)}`);
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            renderSummaryMatrix(result);
+
+            // 마지막 업데이트 시간 갱신
+            const now = new Date();
+            if (lastUpdateEl) {
+                lastUpdateEl.textContent = now.toLocaleTimeString();
+            }
+        } else {
+            throw new Error(result.message || '데이터 로드 실패');
+        }
+
+    } catch (error) {
+        console.error('Summary load error:', error);
+        timelineContainer.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #ef4444; margin-bottom: 8px;"></i>
+                <p>데이터를 불러오지 못했습니다.</p>
+                <p style="font-size: 12px; color: var(--text-tertiary);">${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * 요약 탭 매트릭스 렌더링 (Sectors x Time)
+ */
+function renderSummaryMatrix(data) {
+    const container = document.getElementById('summary-timeline');
+    if (!container) return;
+
+    const { time_labels, time_ranges, sectors } = data;
+
+    container.innerHTML = '';
+
+    // 매트릭스 컨테이너 생성
+    const matrixContainer = document.createElement('div');
+    matrixContainer.className = 'summary-matrix-container';
+
+    if (!sectors || sectors.length === 0) {
+        container.innerHTML = '<div class="empty-state">표시할 데이터가 없습니다.</div>';
+        return;
+    }
+
+    // 헤더 행 (시간 라벨)
+    const headerRow = document.createElement('div');
+    headerRow.className = 'matrix-header-row';
+
+    // 첫 컬럼 (섹터명) 빈칸
+    const emptyHeader = document.createElement('div');
+    emptyHeader.className = 'matrix-header-cell sector-col';
+    emptyHeader.textContent = '관제 섹터';
+    headerRow.appendChild(emptyHeader);
+
+    time_labels.forEach((label, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-header-cell time-col';
+        cell.innerHTML = `
+            <div class="time-main">${label}</div>
+            <div class="time-sub">${time_ranges[idx]}</div>
+        `;
+        headerRow.appendChild(cell);
+    });
+    matrixContainer.appendChild(headerRow);
+
+    // 데이터 행 (섹터별)
+    sectors.forEach(sector => {
+        const row = document.createElement('div');
+        row.className = 'matrix-row';
+
+        // 섹터명 컬럼
+        const nameCell = document.createElement('div');
+        nameCell.className = 'matrix-cell sector-name-cell';
+        nameCell.textContent = sector.name;
+        row.appendChild(nameCell);
+
+        // 시간 슬롯 컬럼
+        // 시간 슬롯 컬럼
+        sector.slots.forEach(slot => {
+            const cell = document.createElement('div');
+            // 위험도 클래스 (high, medium, low, none)
+            const riskLevel = slot.max_risk ? slot.max_risk.toLowerCase() : 'none';
+            cell.className = `matrix-cell risk-cell ${riskLevel}`;
+
+            let riskText = '';
+            if (slot.max_risk === 'HIGH') riskText = '심각';
+            else if (slot.max_risk === 'MEDIUM') riskText = '경계';
+            else if (slot.max_risk === 'LOW') riskText = '주의';
+
+            if (slot.count > 0) {
+                cell.innerHTML = `
+                    <div class="risk-count">${slot.count}</div>
+                    <div class="risk-label">${riskText}</div>
+                `;
+            } else {
+                cell.innerHTML = '<span class="dash">-</span>';
+            }
+
+            row.appendChild(cell);
+        });
+
+        matrixContainer.appendChild(row);
+    });
+
+    container.appendChild(matrixContainer);
+}

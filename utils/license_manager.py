@@ -36,11 +36,11 @@ class LicenseManager:
 
     # 기능 제한 (개발용)
     DEVELOPMENT_LIMITS = {
-        'max_flights_per_upload': 100,  # 한 번에 100항공편까지만
-        'max_storage_mb': 100,           # 100MB까지만
-        'watermark': True,               # 워터마크 표시
-        'export_limit': 50,              # 50개까지만 내보내기
-        'data_retention_days': 30,       # 30일 데이터만 유지
+        'max_flights_per_upload': 999999,  # 제한 해제
+        'max_storage_mb': 999999,           # 제한 해제
+        'watermark': True,               # 워터마크 표시 (유지)
+        'export_limit': 999999,              # 제한 해제
+        'data_retention_days': 9999,       # 제한 해제
     }
 
     # 기능 제한 없음 (상업용)

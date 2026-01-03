@@ -91,7 +91,10 @@
 
             <!-- 탭 네비게이션 -->
             <nav class="nav-tabs">
-                <button class="nav-tab active" data-target="dashboard-view">
+                <button class="nav-tab active" data-target="summary-view" id="summary-tab-btn">
+                    <i class="fas fa-bolt"></i> 요약 (실시간 예측)
+                </button>
+                <button class="nav-tab" data-target="dashboard-view">
                     <i class="fas fa-chart-line"></i> 대시보드 (유사호출 분석)
                 </button>
                 <button class="nav-tab" data-target="period-analysis-view">
@@ -117,8 +120,40 @@
             <!-- 메인 콘텐츠 -->
             <main class="main-content">
 
+                <!-- 뷰 0: 요약 (Summary) -->
+                <div id="summary-view" class="view-section active">
+                    <div class="summary-container">
+                        <header class="summary-header">
+                            <div>
+                                <h2><i class="fas fa-bolt"></i> 실시간 섹터 위험 예측</h2>
+                                <p>향후 1시간 동안의 유사호출 발생 가능성이 높은 섹터를 예측합니다.</p>
+                            </div>
+                            <div class="summary-controls">
+                                <div class="time-offset-group">
+                                    <button class="offset-btn active" data-offset="0">현재</button>
+                                    <button class="offset-btn" data-offset="60">1시간 후</button>
+                                    <button class="offset-btn" data-offset="120">2시간 후</button>
+                                    <button class="offset-btn" data-offset="180">3시간 후</button>
+                                </div>
+                                <span class="last-update">업데이트: <span id="summary-last-update">-</span></span>
+                                <button id="refresh-summary-btn" class="btn-icon" title="새로고침">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </header>
+
+                        <!-- 타임라인 그리드 -->
+                        <div class="timeline-grid" id="summary-timeline">
+                            <!-- JS로 동적 생성됨 -->
+                            <div class="timeline-loading">
+                                <i class="fas fa-circle-notch fa-spin"></i> 데이터 분석 중...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 뷰 1: 대시보드 -->
-                <div id="dashboard-view" class="view-section active">
+                <div id="dashboard-view" class="view-section">
                     <div style="display: flex; gap: 20px; flex: 1; overflow: hidden;">
                         <!-- 왼쪽: 분석 메뉴 -->
                         <aside

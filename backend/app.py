@@ -28,7 +28,7 @@ from utils.file_validator import FileValidator
 from utils.logger import setup_logger
 from utils.similarity_optimizer import SimilarityOptimizer
 from utils.sector_parser import parse_sector_times, calculate_sector_overlaps, get_sector_overlap_summary
-from utils.constants import API_PORT, FRONTEND_PORT, DEBUG
+from utils.constants import API_PORT, FRONTEND_PORT, DEBUG, SECTORS
 from utils.license_manager import get_license_manager
 from backend.license_api import license_bp, admin_license_bp
 from database.db_manager import DatabaseManager
@@ -168,7 +168,8 @@ AUTH_EXEMPT_PREFIXES = (
     '/api/auth',
     '/api/health',
     '/api/sample',  # 샘플 파일 다운로드 (인증 불필요)
-    '/api/admin'    # 관리자 기능 (개발 모드: 인증 불필요)
+    '/api/admin',   # 관리자 기능 (개발 모드: 인증 불필요)
+    '/api/summary'  # 요약 탭 (인증 불필요)
 )
 
 
@@ -1617,6 +1618,186 @@ def delete_aircraft_profile_api(icao_code):
         return jsonify({
             'status': 'error',
             'message': f'기종 정보를 삭제하지 못했습니다: {str(e)}'
+        }), 500
+
+
+
+@app.route('/api/summary/forecast', methods=['GET'])
+def get_summary_forecast():
+    """
+    향후 1시간 동안의 섹터별 유사호출 위험 예측 (섹터 중심 뷰)
+    Query Params:
+        base_time (optional): 기준 시간 (ISO8601, default: now)
+    """
+    try:
+        base_time_str = request.args.get('base_time')
+        if base_time_str:
+            base_time = datetime.fromisoformat(base_time_str)
+        else:
+            base_time = datetime.now()
+
+        # 1. 15분 단위 4개 시간 슬롯 정의
+        time_slots = []
+        for i in range(4):
+            slot_start = base_time + timedelta(minutes=15 * i)
+            slot_end = slot_start + timedelta(minutes=15)
+            time_slots.append({
+                'index': i,
+                'label': f"+{15*i}분" if i > 0 else "현재",
+                'start': slot_start,
+                'end': slot_end,
+                'time_str': f"{slot_start.strftime('%H:%M')}~{slot_end.strftime('%H:%M')}"
+            })
+
+        # 2. 데이터베이스에서 가장 최근 날짜 조회
+        latest_date_query = """
+            SELECT MAX(eobd) as latest_date
+            FROM flights
+        """
+        latest_result = db_manager.execute_query(latest_date_query)
+        
+        if not latest_result or not latest_result[0]['latest_date']:
+            # 데이터가 없으면 빈 결과 반환
+            return jsonify({
+                'status': 'success',
+                'base_time': base_time.isoformat(),
+                'time_labels': [slot['label'] for slot in time_slots],
+                'time_ranges': [slot['time_str'] for slot in time_slots],
+                'sectors': []
+            })
+        
+        latest_date_str = latest_result[0]['latest_date']
+        latest_date = datetime.strptime(latest_date_str, '%Y-%m-%d')
+        
+        # 최근 30일 범위 계산
+        date_range_start = (latest_date - timedelta(days=30)).strftime('%Y-%m-%d')
+        date_range_end = latest_date_str
+        
+        # base_time을 latest_date 기준으로 조정 (시간만 유지)
+        adjusted_base_time = datetime.combine(
+            latest_date.date(),
+            base_time.time()
+        )
+        
+        # 시간 슬롯을 조정된 base_time 기준으로 재계산
+        time_slots = []
+        for i in range(4):
+            slot_start = adjusted_base_time + timedelta(minutes=15 * i)
+            slot_end = slot_start + timedelta(minutes=15)
+            time_slots.append({
+                'index': i,
+                'label': f"+{15*i}분" if i > 0 else "현재",
+                'start': slot_start,
+                'end': slot_end,
+                'time_str': f"{slot_start.strftime('%H:%M')}~{slot_end.strftime('%H:%M')}"
+            })
+        
+        target_date = adjusted_base_time.strftime('%Y-%m-%d')
+        
+        query = """
+            SELECT 
+                s.id, s.flight_id_1, s.flight_id_2, s.similarity_level, 
+                so.sector_name, so.overlap_start, so.overlap_end
+            FROM similarities s
+            JOIN sector_overlaps so ON s.id = so.similarity_id
+            JOIN flights f1 ON s.flight_id_1 = f1.id
+            WHERE f1.eobd BETWEEN ? AND ?
+                AND f1.eobd = ?
+        """
+        
+        results = db_manager.execute_query(query, (date_range_start, date_range_end, target_date))
+        
+        # 3. 데이터 가공: 섹터별로 그룹화
+        # structure: { 'SECTOR_NAME': [slot0_data, slot1_data, slot2_data, slot3_data] }
+        sector_data = {}
+        
+        # 3-0. 모든 섹터에 대해 초기화 (기본 골격 생성)
+        for s_name in SECTORS:
+            sector_data[s_name] = [{'count': 0, 'risk_score': 0, 'max_risk': None} for _ in range(4)]
+
+        for row in results:
+            sector_name = row['sector_name']
+            if not sector_name: continue
+            
+            # SECTORS 상수에 없는 섹터는 무시 (HH, HL 등 제외)
+            if sector_name not in SECTORS:
+                continue
+
+            # 시간 파싱
+            try:
+                overlap_start = datetime.strptime(f"{target_date} {row['overlap_start']}", "%Y-%m-%d %H:%M:%S")
+                overlap_end = datetime.strptime(f"{target_date} {row['overlap_end']}", "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                 try:
+                    overlap_start = datetime.strptime(f"{target_date} {row['overlap_start']}", "%Y-%m-%d %H:%M")
+                    overlap_end = datetime.strptime(f"{target_date} {row['overlap_end']}", "%Y-%m-%d %H:%M")
+                 except:
+                    continue
+
+            # 위험도 분석
+            similarity_level = row['similarity_level']
+            risk_score = 1
+            risk_label = 'LOW'
+            if 'LEVEL_5' in similarity_level:
+                risk_score = 3
+                risk_label = 'HIGH'
+            elif 'LEVEL_4' in similarity_level:
+                risk_score = 2
+                risk_label = 'MEDIUM'
+
+            # 섹터 초기화 (위에서 이미 했지만, 방어 코드)
+            if sector_name not in sector_data:
+                 sector_data[sector_name] = [
+                    {'count': 0, 'risk_score': 0, 'max_risk': None} for _ in range(4)
+                ]
+
+            # 슬롯 매핑
+            for i, slot in enumerate(time_slots):
+                # 겹침 확인
+                latest_start = max(slot['start'], overlap_start)
+                earliest_end = min(slot['end'], overlap_end)
+                
+                if latest_start < earliest_end:
+                    # 해당 슬롯에 데이터 누적
+                    slot_data = sector_data[sector_name][i]
+                    slot_data['count'] += 1
+                    slot_data['risk_score'] += risk_score
+                    
+                    # Max Risk 업데이트
+                    current_max = slot_data['max_risk']
+                    if risk_label == 'HIGH':
+                        slot_data['max_risk'] = 'HIGH'
+                    elif risk_label == 'MEDIUM' and current_max != 'HIGH':
+                        slot_data['max_risk'] = 'MEDIUM'
+                    elif risk_label == 'LOW' and current_max is None:
+                        slot_data['max_risk'] = 'LOW'
+
+        # 4. 리스트로 변환 및 정렬 (총 위험 점수 높은 순)
+        formatted_sectors = []
+        for name, slots_data in sector_data.items():
+            total_score = sum(s['risk_score'] for s in slots_data)
+            formatted_sectors.append({
+                'name': name,
+                'total_score': total_score,
+                'slots': slots_data
+            })
+        
+        # 정렬
+        formatted_sectors.sort(key=lambda x: x['total_score'], reverse=True)
+
+        return jsonify({
+            'status': 'success',
+            'base_time': base_time.isoformat(),
+            'time_labels': [t['label'] for t in time_slots],
+            'time_ranges': [t['time_str'] for t in time_slots],
+            'sectors': formatted_sectors
+        })
+
+    except Exception as e:
+        logger.error(f"Summary forecast error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500
 
 

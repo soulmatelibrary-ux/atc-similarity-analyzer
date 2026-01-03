@@ -98,7 +98,7 @@ RISK_COLORS = {
 }
 
 # 섹터 목록
-SECTORS = ['JH', 'JN', 'KH', 'GH', 'ES1', 'ES2', 'SS', 'WH', 'WL', 'PH', 'GL', 'DG', 'HH', 'HL']
+SECTORS = ['GL', 'GH', 'KL', 'KH', 'JN', 'JL', 'JH', 'DG', 'PH', 'WL', 'WH', 'SS', 'ES1', 'ES2']
 
 # 시간대 슬롯 (15분 단위)
 TIME_SLOTS = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 15)]
