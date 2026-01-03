@@ -148,7 +148,8 @@ if limits['watermark']:
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # 데이터베이스 초기화
-db_path = os.path.join(PROJECT_DIR, 'database', 'similarity_detector.db')
+# 백엔드는 별도 테스트 DB 사용 (프로젝트 루트 DB와 독립적)
+db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
 db_manager = DatabaseManager(db_path)
 flight_service = FlightService(db_manager)
 
@@ -2966,7 +2967,7 @@ def run_simulation_cli():
             # 데이터베이스 초기화 (필요한 경우)
             reset_db = request.form.get('reset_db', 'false').lower() == 'true'
             if reset_db:
-                db_path = os.path.join(PROJECT_DIR, 'database', 'similarity_detector.db')
+                db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
                 if os.path.exists(db_path):
                     os.remove(db_path)
                     logger.info(f"데이터베이스 파일 삭제: {db_path}")
@@ -3038,7 +3039,7 @@ def run_simulation_cli():
 def reset_db():
     """데이터베이스 초기화"""
     try:
-        db_path = os.path.join(PROJECT_DIR, 'database', 'similarity_detector.db')
+        db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
 
         if os.path.exists(db_path):
             os.remove(db_path)
@@ -3076,7 +3077,7 @@ def delete_database():
 
         if delete_type == 'all':
             # 전체 데이터베이스 삭제
-            db_path = os.path.join(PROJECT_DIR, 'database', 'similarity_detector.db')
+            db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
 
             if os.path.exists(db_path):
                 os.remove(db_path)

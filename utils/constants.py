@@ -131,8 +131,8 @@ SEPARATION_STANDARDS = {
 }
 
 # 데이터베이스
-DATABASE_PATH = 'similarity_detector.db'
-DATABASE_URL = 'sqlite:///similarity_detector.db'
+DATABASE_PATH = 'database/similarity_detector.db'
+DATABASE_URL = 'sqlite:///database/similarity_detector.db'
 
 # 로깅
 LOG_LEVEL = 'INFO'
