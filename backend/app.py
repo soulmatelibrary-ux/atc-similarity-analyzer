@@ -171,7 +171,8 @@ AUTH_EXEMPT_PREFIXES = (
     '/api/sample',  # 샘플 파일 다운로드 (인증 불필요)
     '/api/admin',   # 관리자 기능 (개발 모드: 인증 불필요)
     '/api/summary', # 요약 탭 (인증 불필요)
-    '/api/test'     # 모델링 테스트 (개발 모드: 인증 불필요)
+    '/api/test',    # 모델링 테스트 (개발 모드: 인증 불필요)
+    '/api/flights'  # 항공편 데이터 (인증 불필요)
 )
 
 
