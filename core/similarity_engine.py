@@ -148,9 +148,9 @@ class SimilarityEngine:
         if self._is_airline_similar(air1, air2) and num1 == num2 and num1 != "":
             return self._store_and_return(cache_key, ('LEVEL_5-1', ed))
 
-        # 4-5: Different Airline + Identical Numbers (LEVEL_5-1 후에)
+        # 3-2: Different Airline + Identical Numbers (LEVEL_5-1 후에)
         if air1 != air2 and num1 == num2 and num1 != "":
-            return self._store_and_return(cache_key, ('LEVEL_4-5', ed))
+            return self._store_and_return(cache_key, ('LEVEL_3-2', ed))
 
         # 4-4: Airline Similar + Number Similar (마지막 LEVEL 4)
         if self._is_airline_similar(air1, air2) and (self._is_string_similar(num1, num2, 'visual') or self._is_string_similar(num1, num2, 'auditory')):

@@ -54,21 +54,20 @@ SIMILARITY_LEVELS = {
         'score_avg': 72,
         'description': "항공사 유사 + 숫자 유사 (Airline 유사 + 숫자가 시각/청각적 혼동 패턴에 해당)"
     },
-    "LEVEL_4-5": {
-        'risk': "MEDIUM",
-        'score_min': 65,
-        'score_max': 72,
-        'score_avg': 68,
-        'description': "다른 항공사 + 숫자 동일 (항공사는 다르나 숫자 부분이 완전히 동일)"
-    },
-
     # LEVEL 3 (저위험 - Notice: 50~64점)
     "LEVEL_3-1": {
         'risk': "LOW",
-        'score_min': 50,
+        'score_min': 57,
         'score_max': 64,
-        'score_avg': 57,
+        'score_avg': 60,
         'description': "Leading Zero 차이 (수치적 값은 동일하나 표기만 다름)"
+    },
+    "LEVEL_3-2": {
+        'risk': "LOW",
+        'score_min': 50,
+        'score_max': 56,
+        'score_avg': 53,
+        'description': "다른 항공사 + 숫자 동일 (항공사는 다르나 숫자 부분이 완전히 동일)"
     }
 }
 
@@ -117,7 +116,7 @@ OPTIONAL_COLUMNS = ['AIRCRAFT_TYPE', 'ALT', 'INFO_CN', 'EET']
 DEFAULT_FILTERS = {
     'min_coexist_minutes': 0,
     'max_coexist_minutes': None,
-    'similarity_levels': ['LEVEL_5-1', 'LEVEL_5-2', 'LEVEL_5-3', 'LEVEL_4-1', 'LEVEL_4-2', 'LEVEL_4-3', 'LEVEL_4-4', 'LEVEL_4-5'],
+    'similarity_levels': ['LEVEL_5-1', 'LEVEL_5-2', 'LEVEL_5-3', 'LEVEL_4-1', 'LEVEL_4-2', 'LEVEL_4-3', 'LEVEL_4-4', 'LEVEL_3-1', 'LEVEL_3-2'],
     'risk_levels': ['HIGH', 'MEDIUM', 'LOW'],
     'sectors': None,
     'time_range': ['00:00', '23:59'],
