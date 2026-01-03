@@ -1672,40 +1672,44 @@ def get_summary_forecast():
         # 최근 30일 범위 계산
         date_range_start = (latest_date - timedelta(days=30)).strftime('%Y-%m-%d')
         date_range_end = latest_date_str
-        
-        # base_time을 latest_date 기준으로 조정 (시간만 유지)
-        adjusted_base_time = datetime.combine(
-            latest_date.date(),
-            base_time.time()
-        )
-        
-        # 시간 슬롯을 조정된 base_time 기준으로 재계산
+
+        # base_time의 시간만 추출
+        base_hour = base_time.hour
+        base_minute = base_time.minute
+
+        # 시간 슬롯 정의 (시간대 기반)
         time_slots = []
         for i in range(4):
-            slot_start = adjusted_base_time + timedelta(minutes=15 * i)
-            slot_end = slot_start + timedelta(minutes=15)
+            slot_minutes = base_minute + 15 * i
+            slot_hour = base_hour + (slot_minutes // 60)
+            slot_minutes = slot_minutes % 60
+
+            next_slot_minutes = slot_minutes + 15
+            next_slot_hour = slot_hour + (next_slot_minutes // 60)
+            next_slot_minutes = next_slot_minutes % 60
+
             time_slots.append({
                 'index': i,
                 'label': f"+{15*i}분" if i > 0 else "현재",
-                'start': slot_start,
-                'end': slot_end,
-                'time_str': f"{slot_start.strftime('%H:%M')}~{slot_end.strftime('%H:%M')}"
+                'hour_start': slot_hour % 24,
+                'minute_start': slot_minutes,
+                'hour_end': next_slot_hour % 24,
+                'minute_end': next_slot_minutes,
+                'time_str': f"{slot_hour%24:02d}:{slot_minutes:02d}~{next_slot_hour%24:02d}:{next_slot_minutes:02d}"
             })
-        
-        target_date = adjusted_base_time.strftime('%Y-%m-%d')
-        
+
+        # 지난 30일 데이터에서 해당 시간대 모든 데이터 조회
         query = """
-            SELECT 
-                s.id, s.flight_id_1, s.flight_id_2, s.similarity_level, 
-                so.sector_name, so.overlap_start, so.overlap_end
+            SELECT
+                s.id, s.flight_id_1, s.flight_id_2, s.similarity_level,
+                so.sector_name, so.overlap_start, so.overlap_end, f1.eobd
             FROM similarities s
             JOIN sector_overlaps so ON s.id = so.similarity_id
             JOIN flights f1 ON s.flight_id_1 = f1.id
             WHERE f1.eobd BETWEEN ? AND ?
-                AND f1.eobd = ?
         """
-        
-        results = db_manager.execute_query(query, (date_range_start, date_range_end, target_date))
+
+        results = db_manager.execute_query(query, (date_range_start, date_range_end))
         
         # 3. 데이터 가공: 섹터별로 그룹화
         # structure: { 'SECTOR_NAME': [slot0_data, slot1_data, slot2_data, slot3_data] }
@@ -1718,21 +1722,36 @@ def get_summary_forecast():
         for row in results:
             sector_name = row['sector_name']
             if not sector_name: continue
-            
+
             # SECTORS 상수에 없는 섹터는 무시 (HH, HL 등 제외)
             if sector_name not in SECTORS:
                 continue
 
             # 시간 파싱
             try:
-                overlap_start = datetime.strptime(f"{target_date} {row['overlap_start']}", "%Y-%m-%d %H:%M:%S")
-                overlap_end = datetime.strptime(f"{target_date} {row['overlap_end']}", "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                 try:
-                    overlap_start = datetime.strptime(f"{target_date} {row['overlap_start']}", "%Y-%m-%d %H:%M")
-                    overlap_end = datetime.strptime(f"{target_date} {row['overlap_end']}", "%Y-%m-%d %H:%M")
-                 except:
-                    continue
+                overlap_start_str = row['overlap_start']
+                overlap_end_str = row['overlap_end']
+
+                # 시간 파싱 (HH:MM:SS 또는 HH:MM)
+                if len(overlap_start_str) == 8:  # HH:MM:SS
+                    start_parts = overlap_start_str.split(':')
+                    overlap_start_hour = int(start_parts[0])
+                    overlap_start_min = int(start_parts[1])
+                else:  # HH:MM
+                    start_parts = overlap_start_str.split(':')
+                    overlap_start_hour = int(start_parts[0])
+                    overlap_start_min = int(start_parts[1])
+
+                if len(overlap_end_str) == 8:  # HH:MM:SS
+                    end_parts = overlap_end_str.split(':')
+                    overlap_end_hour = int(end_parts[0])
+                    overlap_end_min = int(end_parts[1])
+                else:  # HH:MM
+                    end_parts = overlap_end_str.split(':')
+                    overlap_end_hour = int(end_parts[0])
+                    overlap_end_min = int(end_parts[1])
+            except:
+                continue
 
             # 위험도 분석
             similarity_level = row['similarity_level']
@@ -1747,22 +1766,28 @@ def get_summary_forecast():
 
             # 섹터 초기화 (위에서 이미 했지만, 방어 코드)
             if sector_name not in sector_data:
-                 sector_data[sector_name] = [
+                sector_data[sector_name] = [
                     {'count': 0, 'risk_score': 0, 'max_risk': None} for _ in range(4)
                 ]
 
             # 슬롯 매핑
             for i, slot in enumerate(time_slots):
+                # 시간대 겹침 확인 (분 단위)
+                slot_start_total_min = slot['hour_start'] * 60 + slot['minute_start']
+                slot_end_total_min = slot['hour_end'] * 60 + slot['minute_end']
+                overlap_start_total_min = overlap_start_hour * 60 + overlap_start_min
+                overlap_end_total_min = overlap_end_hour * 60 + overlap_end_min
+
                 # 겹침 확인
-                latest_start = max(slot['start'], overlap_start)
-                earliest_end = min(slot['end'], overlap_end)
-                
+                latest_start = max(slot_start_total_min, overlap_start_total_min)
+                earliest_end = min(slot_end_total_min, overlap_end_total_min)
+
                 if latest_start < earliest_end:
                     # 해당 슬롯에 데이터 누적
                     slot_data = sector_data[sector_name][i]
                     slot_data['count'] += 1
                     slot_data['risk_score'] += risk_score
-                    
+
                     # Max Risk 업데이트
                     current_max = slot_data['max_risk']
                     if risk_label == 'HIGH':
