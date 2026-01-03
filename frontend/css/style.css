@@ -2316,39 +2316,42 @@ body.theme-airspace:not([data-user-role="admin"]) #aircraft-view {
 }
 
 .summary-flight-callsign {
-    font-size: 16px;
-    font-weight: 700;
-    color: #60a5fa;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
 }
 
 .summary-flight-time {
-    font-size: 12px;
-    color: var(--text-tertiary);
+    font-size: 13px;
+    color: #cbd5e1;
     font-family: var(--font-mono);
+    font-weight: 500;
 }
 
 .summary-flight-badge {
-    padding: 4px 8px;
+    padding: 6px 12px;
     border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
     white-space: nowrap;
+    letter-spacing: 0.5px;
 }
 
 .summary-flight-badge.badge-high {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+    background: #dc2626;
+    color: #ffffff;
 }
 
 .summary-flight-badge.badge-medium {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
+    background: #f97316;
+    color: #ffffff;
 }
 
 .summary-flight-badge.badge-low {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    background: #16a34a;
+    color: #ffffff;
 }
 
 /* 클릭 가능 표시 */
