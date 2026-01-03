@@ -135,6 +135,13 @@
                                     <button class="offset-btn" data-offset="120">2시간 후</button>
                                     <button class="offset-btn" data-offset="180">3시간 후</button>
                                 </div>
+                                <div class="risk-filter-group" style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <span style="font-size: 12px; color: #999; align-self: center;">위험도:</span>
+                                    <button class="risk-filter-btn active" data-risk="all">전체보기</button>
+                                    <button class="risk-filter-btn" data-risk="HIGH">심각</button>
+                                    <button class="risk-filter-btn" data-risk="MEDIUM">경계</button>
+                                    <button class="risk-filter-btn" data-risk="LOW">주의</button>
+                                </div>
                                 <span class="last-update">업데이트: <span id="summary-last-update">-</span></span>
                                 <button id="refresh-summary-btn" class="btn-icon" title="새로고침">
                                     <i class="fas fa-sync-alt"></i>

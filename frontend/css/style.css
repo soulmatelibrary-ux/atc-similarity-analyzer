@@ -2213,6 +2213,50 @@ body.theme-airspace:not([data-user-role="admin"]) #aircraft-view {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* 위험도 필터 버튼 */
+.risk-filter-btn {
+    padding: 6px 16px;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.risk-filter-btn:hover {
+    background: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+.risk-filter-btn.active {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.risk-filter-btn[data-risk="HIGH"].active {
+    background: #ef4444;
+    border-color: #ef4444;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+}
+
+.risk-filter-btn[data-risk="MEDIUM"].active {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+}
+
+.risk-filter-btn[data-risk="LOW"].active {
+    background: #10b981;
+    border-color: #10b981;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
 /* ==========================================================================
    Summary Flights Modal Styles
    ========================================================================== */

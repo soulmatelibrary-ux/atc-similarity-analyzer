@@ -490,6 +490,21 @@ function attachEventListeners() {
         });
     });
 
+    // 위험도 필터 버튼
+    const riskFilterBtns = document.querySelectorAll('.risk-filter-btn');
+    riskFilterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 활성 상태 변경
+            riskFilterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // 필터 적용 - 현재 데이터를 다시 렌더링
+            const summaryTimeline = document.getElementById('summary-timeline');
+            if (summaryTimeline && summaryTimeline.lastData) {
+                applyRiskFilter(summaryTimeline.lastData);
+            }
+        });
+    });
+
     // 전체 엑셀 다운로드 버튼
     const exportExcelBtn = document.getElementById('export-all-excel-btn');
     if (exportExcelBtn) {
@@ -5367,6 +5382,9 @@ function renderSummaryMatrix(data) {
     const container = document.getElementById('summary-timeline');
     if (!container) return;
 
+    // 데이터를 저장하여 필터링에 사용
+    container.lastData = data;
+
     const { time_labels, time_ranges, sectors } = data;
 
     container.innerHTML = '';
@@ -5452,6 +5470,35 @@ function renderSummaryMatrix(data) {
     });
 
     container.appendChild(matrixContainer);
+}
+
+/**
+ * 위험도 필터 적용
+ */
+function applyRiskFilter(data) {
+    const activeFilter = document.querySelector('.risk-filter-btn.active');
+    const selectedRisk = activeFilter ? activeFilter.dataset.risk : 'all';
+
+    const cells = document.querySelectorAll('.matrix-cell.risk-cell');
+
+    cells.forEach(cell => {
+        // 모든 위험도 레벨 클래스 제거
+        cell.classList.remove('filtered');
+
+        if (selectedRisk === 'all') {
+            // 전체보기: 모든 셀 표시
+            cell.style.display = '';
+        } else if (cell.classList.contains(selectedRisk.toLowerCase())) {
+            // 해당 위험도만 표시
+            cell.style.display = '';
+        } else if (cell.classList.contains('none') && selectedRisk === 'all') {
+            // 데이터 없는 셀은 전체보기일 때 표시
+            cell.style.display = '';
+        } else {
+            // 다른 위험도 셀은 숨김
+            cell.style.display = 'none';
+        }
+    });
 }
 
 /**
