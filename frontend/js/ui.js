@@ -5479,8 +5479,8 @@ function applyRiskFilter(data) {
     const activeFilter = document.querySelector('.risk-filter-btn.active');
     const selectedRisk = activeFilter ? activeFilter.dataset.risk : 'all';
 
+    // 1. 매트릭스 셀 필터링
     const cells = document.querySelectorAll('.matrix-cell.risk-cell');
-
     cells.forEach(cell => {
         // 모든 위험도 레벨 클래스 제거
         cell.classList.remove('filtered');
@@ -5497,6 +5497,23 @@ function applyRiskFilter(data) {
         } else {
             // 다른 위험도 셀은 숨김
             cell.style.display = 'none';
+        }
+    });
+
+    // 2. Summary 플라이트 카드 필터링 (팝업 모달)
+    const flightCards = document.querySelectorAll('.summary-flight-card');
+    flightCards.forEach(card => {
+        const cardRisk = card.getAttribute('data-risk');
+
+        if (selectedRisk === 'all') {
+            // 전체보기: 모든 카드 표시
+            card.style.display = '';
+        } else if (cardRisk === selectedRisk) {
+            // 해당 위험도 카드만 표시
+            card.style.display = '';
+        } else {
+            // 다른 위험도 카드는 숨김
+            card.style.display = 'none';
         }
     });
 }
@@ -5524,7 +5541,7 @@ function openSummaryFlightsModal(sectorName, timeRange, flights) {
             const riskText = getRiskText(flight.similarity_level);
 
             html += `
-                <div class="summary-flight-card" onclick="openDetailModal(${flight.flight_id_1}, ${flight.flight_id_2}, '${flight.callsign_1}', '${flight.callsign_2}')">
+                <div class="summary-flight-card" data-risk="${getRiskLevel(flight.similarity_level)}" onclick="openDetailModal(${flight.flight_id_1}, ${flight.flight_id_2}, '${flight.callsign_1}', '${flight.callsign_2}')">
                     <div class="summary-flight-pair">
                         <div class="summary-flight-info">
                             <div class="summary-flight-callsign">${flight.callsign_1}</div>
@@ -5572,6 +5589,15 @@ function getRiskText(level) {
     if (level.includes('LEVEL_5')) return '심각';
     if (level.includes('LEVEL_4')) return '경계';
     return '주의';
+}
+
+/**
+ * 위험도 레벨에서 위험도 수준 추출 (HIGH/MEDIUM/LOW)
+ */
+function getRiskLevel(level) {
+    if (level.includes('LEVEL_5')) return 'HIGH';
+    if (level.includes('LEVEL_4')) return 'MEDIUM';
+    return 'LOW';
 }
 
 // Summary 모달 외부 클릭 시 닫기
