@@ -2,8 +2,18 @@
 라이선스 관련 API 엔드포인트
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.license_manager import get_license_manager
+
+# 관리자 권한 확인을 위한 허용 이메일
+ADMIN_ONLY_EMAIL = 'lsi117@airport.kr'
+
+def check_admin_access():
+    """관리자 전용 이메일 확인"""
+    user = session.get('user')
+    if not user:
+        return False
+    return user.get('email') == ADMIN_ONLY_EMAIL
 
 license_bp = Blueprint('license', __name__, url_prefix='/api/license')
 
@@ -55,6 +65,13 @@ admin_license_bp = Blueprint('admin_license', __name__, url_prefix='/api/admin/l
 @admin_license_bp.route('/generate', methods=['POST'])
 def generate_license():
     """라이선스 생성 (관리자용)"""
+    # 관리자 권한 확인
+    if not check_admin_access():
+        return jsonify({
+            'status': 'error',
+            'message': '관리자 권한이 필요합니다.'
+        }), 403
+
     try:
         data = request.get_json()
 

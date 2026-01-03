@@ -32,7 +32,9 @@ const appState = {
     tableSortColumn: null,  // 현재 정렬 중인 컬럼
     tableSortDirection: 'asc',  // 정렬 방향 ('asc' 또는 'desc')
     // 라이선스 관리
-    generatedLicense: null  // 생성된 라이선스 데이터
+    generatedLicense: null,  // 생성된 라이선스 데이터
+    // 사용자 정보
+    currentUser: null  // 현재 로그인한 사용자 정보
 };
 
 /**
@@ -5066,6 +5068,54 @@ function downloadSampleCSV() {
 }
 
 /**
+ * 관리자 탭 접근 제어
+ */
+
+// 관리자 이메일 상수
+const ADMIN_ONLY_EMAIL = 'lsi117@airport.kr';
+
+/**
+ * 관리자 탭 표시 여부를 결정하는 함수
+ */
+async function initializeAdminTabAccess() {
+    try {
+        // 현재 세션 정보 가져오기
+        const response = await fetch(`${API_BASE_URL}/auth/session`);
+        if (!response.ok) {
+            throw new Error('세션 정보 조회 실패');
+        }
+
+        const result = await response.json();
+
+        if (result.authenticated && result.user) {
+            appState.currentUser = result.user;
+            const userEmail = result.user.email;
+            const adminTabBtn = document.getElementById('admin-tab-btn');
+
+            // lsi117@airport.kr 이메일이 아니면 관리자 탭 숨기기
+            if (userEmail !== ADMIN_ONLY_EMAIL && adminTabBtn) {
+                adminTabBtn.style.display = 'none';
+
+                // 관리자 탭이 활성화되어 있었다면 다른 탭으로 전환
+                if (adminTabBtn.classList.contains('active')) {
+                    const summaryTabBtn = document.getElementById('summary-tab-btn');
+                    if (summaryTabBtn) {
+                        summaryTabBtn.click();
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('관리자 탭 접근 제어 오류:', error);
+        // 오류 발생 시 안전하게 관리자 탭 숨기기
+        const adminTabBtn = document.getElementById('admin-tab-btn');
+        if (adminTabBtn) {
+            adminTabBtn.style.display = 'none';
+        }
+    }
+}
+
+/**
  * 관리자 라이선스 관리
  */
 
@@ -5149,8 +5199,11 @@ function generateLicense() {
         })
     })
         .then(response => {
+            if (response.status === 403) {
+                throw new Error('관리자 권한이 필요합니다. (lsi117@airport.kr 계정만 접근 가능)');
+            }
             if (!response.ok) {
-                throw new Error('라이선스 생성 실패');
+                throw new Error(`라이선스 생성 실패 (HTTP ${response.status})`);
             }
             return response.json();
         })
@@ -5175,7 +5228,7 @@ function generateLicense() {
         })
         .catch(error => {
             console.error('라이선스 생성 오류:', error);
-            alert('라이선스 생성에 실패했습니다.');
+            alert(error.message || '라이선스 생성에 실패했습니다.');
         });
 }
 
@@ -5234,6 +5287,9 @@ document.addEventListener('DOMContentLoaded', function () {
             closeBtn.addEventListener('click', closeSingleFlightModal);
         }
     }
+
+    // 관리자 탭 표시 제어
+    initializeAdminTabAccess();
 
     // 페이지 로드 시 Summary 탭이 활성화되어 있으면 데이터 로드
     const summaryView = document.getElementById('summary-view');
