@@ -1702,10 +1702,12 @@ def get_summary_forecast():
         query = """
             SELECT
                 s.id, s.flight_id_1, s.flight_id_2, s.similarity_level,
-                so.sector_name, so.overlap_start, so.overlap_end, f1.eobd
+                so.sector_name, so.overlap_start, so.overlap_end, f1.eobd,
+                f1.callsign as callsign_1, f2.callsign as callsign_2
             FROM similarities s
             JOIN sector_overlaps so ON s.id = so.similarity_id
             JOIN flights f1 ON s.flight_id_1 = f1.id
+            JOIN flights f2 ON s.flight_id_2 = f2.id
             WHERE f1.eobd BETWEEN ? AND ?
         """
 
@@ -1717,7 +1719,7 @@ def get_summary_forecast():
         
         # 3-0. 모든 섹터에 대해 초기화 (기본 골격 생성)
         for s_name in SECTORS:
-            sector_data[s_name] = [{'count': 0, 'risk_score': 0, 'max_risk': None} for _ in range(4)]
+            sector_data[s_name] = [{'count': 0, 'risk_score': 0, 'max_risk': None, 'flights': []} for _ in range(4)]
 
         for row in results:
             sector_name = row['sector_name']
@@ -1789,6 +1791,19 @@ def get_summary_forecast():
                     slot_data = sector_data[sector_name][i]
                     slot_data['count'] += 1
                     slot_data['risk_score'] += risk_score
+
+                    # 항공기 정보 추가
+                    flight_info = {
+                        'similarity_id': row['id'],
+                        'flight_id_1': row['flight_id_1'],
+                        'flight_id_2': row['flight_id_2'],
+                        'callsign_1': row['callsign_1'],
+                        'callsign_2': row['callsign_2'],
+                        'similarity_level': row['similarity_level'],
+                        'overlap_time': f"{overlap_start_str}~{overlap_end_str}".replace('T', ' ').split(' ')[1] + '~' + overlap_end_str.replace('T', ' ').split(' ')[1],
+                        'date': row['eobd']
+                    }
+                    slot_data['flights'].append(flight_info)
 
                     # Max Risk 업데이트
                     current_max = slot_data['max_risk']

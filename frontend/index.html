@@ -152,6 +152,26 @@
                     </div>
                 </div>
 
+                <!-- Summary 항공기 목록 모달 -->
+                <div id="summary-flights-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal" onclick="closeSummaryFlightsModal()">&times;</span>
+                        <h2>
+                            <i class="fas fa-plane-departure"></i>
+                            <span id="summary-modal-title">유사호출 항공기 목록</span>
+                        </h2>
+                        <div class="modal-subtitle">
+                            <span id="summary-modal-sector">섹터: JH</span>
+                            <span id="summary-modal-time">시간: 01:15~01:30</span>
+                        </div>
+                        <div class="modal-body">
+                            <div id="summary-flights-list">
+                                <!-- 동적 생성: 항공기 쌍 카드 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 뷰 1: 대시보드 -->
                 <div id="dashboard-view" class="view-section">
                     <div style="display: flex; gap: 20px; flex: 1; overflow: hidden;">

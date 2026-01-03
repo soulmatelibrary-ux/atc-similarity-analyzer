@@ -5370,10 +5370,21 @@ function renderSummaryMatrix(data) {
             else if (slot.max_risk === 'LOW') riskText = '주의';
 
             if (slot.count > 0) {
+                cell.classList.add('has-data');
                 cell.innerHTML = `
                     <div class="risk-count">${slot.count}</div>
                     <div class="risk-label">${riskText}</div>
                 `;
+
+                // 클릭 이벤트 추가
+                const timeRange = time_ranges[sector.slots.indexOf(slot)];
+                cell.addEventListener('click', () => {
+                    openSummaryFlightsModal(
+                        sector.name,
+                        timeRange,
+                        slot.flights || []
+                    );
+                });
             } else {
                 cell.innerHTML = '<span class="dash">-</span>';
             }
@@ -5386,3 +5397,84 @@ function renderSummaryMatrix(data) {
 
     container.appendChild(matrixContainer);
 }
+
+/**
+ * Summary 항공기 목록 모달 열기
+ */
+function openSummaryFlightsModal(sectorName, timeRange, flights) {
+    const modal = document.getElementById('summary-flights-modal');
+    if (!modal) return;
+
+    // 제목 설정
+    document.getElementById('summary-modal-sector').textContent = `섹터: ${sectorName}`;
+    document.getElementById('summary-modal-time').textContent = `시간: ${timeRange}`;
+
+    // 항공기 목록 렌더링
+    const listContainer = document.getElementById('summary-flights-list');
+
+    if (!flights || flights.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">해당 시간대에 유사호출이 없습니다.</div>';
+    } else {
+        let html = '';
+        flights.forEach(flight => {
+            const riskClass = getRiskClass(flight.similarity_level);
+            const riskText = getRiskText(flight.similarity_level);
+
+            html += `
+                <div class="summary-flight-card" onclick="openDetailModal(${flight.flight_id_1}, ${flight.flight_id_2}, '${flight.callsign_1}', '${flight.callsign_2}')">
+                    <div class="summary-flight-pair">
+                        <div class="summary-flight-info">
+                            <div class="summary-flight-callsign">${flight.callsign_1}</div>
+                            <div class="summary-flight-time">${flight.date} ${flight.overlap_time}</div>
+                        </div>
+                        <i class="fas fa-exchange-alt"></i>
+                        <div class="summary-flight-info">
+                            <div class="summary-flight-callsign">${flight.callsign_2}</div>
+                            <div class="summary-flight-time">${flight.date} ${flight.overlap_time}</div>
+                        </div>
+                    </div>
+                    <div class="summary-flight-badge badge-${riskClass}">${riskText}</div>
+                </div>
+            `;
+        });
+        listContainer.innerHTML = html;
+    }
+
+    modal.style.display = 'block';
+}
+
+/**
+ * Summary 항공기 목록 모달 닫기
+ */
+function closeSummaryFlightsModal() {
+    const modal = document.getElementById('summary-flights-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * 위험도 레벨에서 CSS 클래스 추출
+ */
+function getRiskClass(level) {
+    if (level.includes('LEVEL_5')) return 'high';
+    if (level.includes('LEVEL_4')) return 'medium';
+    return 'low';
+}
+
+/**
+ * 위험도 레벨에서 한글 텍스트 추출
+ */
+function getRiskText(level) {
+    if (level.includes('LEVEL_5')) return '심각';
+    if (level.includes('LEVEL_4')) return '경계';
+    return '주의';
+}
+
+// Summary 모달 외부 클릭 시 닫기
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('summary-flights-modal');
+    if (e.target === modal) {
+        closeSummaryFlightsModal();
+    }
+});
