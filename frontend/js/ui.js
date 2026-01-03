@@ -5572,6 +5572,11 @@ function openSummaryFlightsModal(sectorName, timeRange, flights) {
     }
 
     modal.style.display = 'block';
+
+    // 모달 렌더링 후 현재 필터 적용
+    setTimeout(() => {
+        applyRiskFilter();
+    }, 0);
 }
 
 /**
