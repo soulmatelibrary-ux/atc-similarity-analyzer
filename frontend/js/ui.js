@@ -5442,6 +5442,10 @@ function renderSummaryMatrix(data) {
 
             if (slot.count > 0) {
                 cell.classList.add('has-data');
+                // 원본 개수와 flights 데이터 저장
+                cell.setAttribute('data-original-count', slot.count);
+                cell.setAttribute('data-flights', JSON.stringify(slot.flights || []));
+
                 cell.innerHTML = `
                     <div class="risk-count">${slot.count}</div>
                     <div class="risk-label">${riskText}</div>
@@ -5481,24 +5485,49 @@ function applyRiskFilter() {
         activeButton: activeFilter?.textContent
     });
 
-    // 1. 매트릭스 셀 필터링
+    // 1. 매트릭스 셀 필터링 및 개수 갱신
     const cells = document.querySelectorAll('.matrix-cell.risk-cell');
     cells.forEach(cell => {
         // 모든 위험도 레벨 클래스 제거
         cell.classList.remove('filtered');
 
+        // flights 데이터 조회
+        const flightsData = cell.getAttribute('data-flights');
+        let flights = [];
+        if (flightsData) {
+            try {
+                flights = JSON.parse(flightsData);
+            } catch (e) {
+                console.error('Failed to parse flights data', e);
+            }
+        }
+
+        // 필터된 개수 계산
+        let filteredCount = 0;
         if (selectedRisk === 'all') {
-            // 전체보기: 모든 셀 표시
-            cell.style.display = '';
-        } else if (cell.classList.contains(selectedRisk.toLowerCase())) {
-            // 해당 위험도만 표시
-            cell.style.display = '';
-        } else if (cell.classList.contains('none') && selectedRisk === 'all') {
-            // 데이터 없는 셀은 전체보기일 때 표시
+            // 전체보기: 모든 항공기
+            filteredCount = flights.length;
             cell.style.display = '';
         } else {
-            // 다른 위험도 셀은 숨김
-            cell.style.display = 'none';
+            // 해당 위험도만 필터
+            filteredCount = flights.filter(flight => {
+                const flightRiskLevel = getRiskLevel(flight.similarity_level);
+                return flightRiskLevel === selectedRisk;
+            }).length;
+
+            if (cell.classList.contains(selectedRisk.toLowerCase())) {
+                cell.style.display = '';
+            } else if (cell.classList.contains('none') && selectedRisk === 'all') {
+                cell.style.display = '';
+            } else {
+                cell.style.display = 'none';
+            }
+        }
+
+        // 개수 업데이트
+        const countDiv = cell.querySelector('.risk-count');
+        if (countDiv) {
+            countDiv.textContent = filteredCount;
         }
     });
 
