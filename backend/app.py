@@ -148,8 +148,13 @@ if limits['watermark']:
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # 데이터베이스 초기화
-# 백엔드는 별도 테스트 DB 사용 (프로젝트 루트 DB와 독립적)
-db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
+# Render 배포 환경: 프로덕션 DB 사용 (database/similarity_detector.db)
+# 로컬 개발 환경: 테스트 DB 사용 (database/backend_similarity_detector.db)
+is_production = os.getenv('RENDER') == 'true' or os.getenv('FLASK_ENV') == 'production'
+if is_production:
+    db_path = os.path.join(PROJECT_DIR, 'database', 'similarity_detector.db')
+else:
+    db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
 db_manager = DatabaseManager(db_path)
 flight_service = FlightService(db_manager)
 
@@ -2967,7 +2972,7 @@ def run_simulation_cli():
         try:
             # 데이터베이스 초기화 (필요한 경우)
             reset_db = request.form.get('reset_db', 'false').lower() == 'true'
-            if reset_db:
+            if reset_db and not is_production:  # 로컬 개발 환경에서만 삭제
                 db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
                 if os.path.exists(db_path):
                     os.remove(db_path)
@@ -3038,8 +3043,15 @@ def run_simulation_cli():
 
 @app.route('/api/simulation/reset-db', methods=['POST'])
 def reset_db():
-    """데이터베이스 초기화"""
+    """데이터베이스 초기화 (로컬 개발 환경에서만)"""
     try:
+        # 프로덕션 환경에서는 DB 초기화 거부
+        if is_production:
+            return jsonify({
+                'status': 'error',
+                'message': '프로덕션 환경에서는 데이터베이스 초기화를 할 수 없습니다.'
+            }), 403
+
         db_path = os.path.join(PROJECT_DIR, 'database', 'backend_similarity_detector.db')
 
         if os.path.exists(db_path):
@@ -3066,13 +3078,20 @@ def reset_db():
 @app.route('/api/database/delete', methods=['POST'])
 def delete_database():
     """
-    데이터베이스 또는 특정 일자의 데이터 삭제
+    데이터베이스 또는 특정 일자의 데이터 삭제 (로컬 개발 환경에서만)
 
     Query parameters:
         - type: 'all' (전체 삭제) 또는 'date' (일자별 삭제)
         - date: type='date'일 때 삭제할 날짜 (YYYY-MM-DD 형식)
     """
     try:
+        # 프로덕션 환경에서는 DB 삭제 거부
+        if is_production:
+            return jsonify({
+                'status': 'error',
+                'message': '프로덕션 환경에서는 데이터베이스 삭제를 할 수 없습니다.'
+            }), 403
+
         delete_type = request.args.get('type', 'all')
         date_str = request.args.get('date', None)
 
