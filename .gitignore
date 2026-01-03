@@ -50,13 +50,16 @@ venv.bak/
 # 2. 데이터베이스 (⚠️ 매우 민감)
 ################################
 
-# SQLite 데이터베이스
-# *.db  # 프로덕션 배포를 위해 주석 처리
+# SQLite 데이터베이스 (모두 무시 - 런타임 데이터)
+*.db
 *.db-journal
 *.db-shm
 *.db-wal
-# *.sqlite  # 프로덕션 배포를 위해 주석 처리
-# *.sqlite3  # 프로덕션 배포를 위해 주석 처리
+*.sqlite
+*.sqlite3
+
+# 예외: 운영 DB는 포함 (필수 데이터 포함)
+!database/similarity_detector.db
 
 # 데이터베이스 백업
 database/.backups/
