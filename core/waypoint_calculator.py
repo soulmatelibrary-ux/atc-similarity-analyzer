@@ -7,10 +7,13 @@ Features:
 - ICAO Speed Format 정확한 파싱
 - Climb Phase / Cruise Phase 명확한 구분
 - EET vs Climb 계산 결과 비교 검증
+- 관제시스템 실측 데이터 기반 FIX간 이동시간 룩업 테이블
 """
 
 import math
 import logging
+import json
+import os
 from datetime import timedelta
 
 logger = logging.getLogger(__name__)
@@ -47,6 +50,66 @@ AIRCRAFT_CLIMB_SPEED_RATIOS = {
 DEFAULT_CLIMB_SPEED_RATIO = 0.70
 DEFAULT_CLIMB_RATE_FPM = 1800
 DEFAULT_CRUISE_SPEED_KMH = 900
+
+# ============================================================================
+# 1.5 FIX간 이동시간 룩업 테이블 (관제시스템 실측 데이터)
+# ============================================================================
+
+_FIX_TRAVEL_LOOKUP = None  # 캐시
+
+def _get_fix_travel_lookup():
+    """
+    FIX간 이동시간 룩업 테이블 로드 (싱글톤 패턴)
+
+    Returns:
+        dict: {from_fix: {to_fix: avg_minutes, ...}, ...}
+    """
+    global _FIX_TRAVEL_LOOKUP
+
+    if _FIX_TRAVEL_LOOKUP is not None:
+        return _FIX_TRAVEL_LOOKUP
+
+    # 파일 경로 탐색
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), '..', 'database', 'fix_travel_times_lookup.json'),
+        os.path.join(os.path.dirname(__file__), '..', 'data', 'fix_travel_times_lookup.json'),
+        'database/fix_travel_times_lookup.json',
+        'fix_travel_times_lookup.json',
+    ]
+
+    for path in possible_paths:
+        abs_path = os.path.abspath(path)
+        if os.path.exists(abs_path):
+            try:
+                with open(abs_path, 'r', encoding='utf-8') as f:
+                    _FIX_TRAVEL_LOOKUP = json.load(f)
+                logger.info(f"FIX 이동시간 룩업 테이블 로드 완료: {len(_FIX_TRAVEL_LOOKUP)}개 출발지점 ({abs_path})")
+                return _FIX_TRAVEL_LOOKUP
+            except Exception as e:
+                logger.warning(f"FIX 룩업 테이블 로드 실패: {e}")
+
+    logger.warning("FIX 이동시간 룩업 테이블 파일을 찾을 수 없음")
+    _FIX_TRAVEL_LOOKUP = {}
+    return _FIX_TRAVEL_LOOKUP
+
+
+def get_fix_travel_time(from_fix, to_fix):
+    """
+    두 FIX 간의 실측 기반 이동시간 조회
+
+    Args:
+        from_fix: 출발 FIX 이름
+        to_fix: 도착 FIX 이름
+
+    Returns:
+        float or None: 이동시간 (분), 데이터 없으면 None
+    """
+    lookup = _get_fix_travel_lookup()
+
+    if from_fix in lookup and to_fix in lookup[from_fix]:
+        return lookup[from_fix][to_fix]
+
+    return None
 
 
 # ============================================================================
@@ -315,7 +378,7 @@ class WaypointCalculator:
             }
         }
 
-    def calculate_route_times(self, dept_time, waypoints, cruise_altitude_ft):
+    def calculate_route_times(self, dept_time, waypoints, cruise_altitude_ft, use_lookup=True):
         """
         경로의 모든 웨이포인트 도달 시간 계산
 
@@ -329,6 +392,7 @@ class WaypointCalculator:
                     ...
                 ]
             cruise_altitude_ft: 순항 고도
+            use_lookup: 관제시스템 실측 룩업 테이블 사용 여부 (기본: True)
 
         Returns:
             list: 각 웨이포인트의 도달 시간과 상세 정보
@@ -336,6 +400,8 @@ class WaypointCalculator:
         results = []
         current_time = dept_time
         current_altitude_ft = 0
+        lookup_hits = 0
+        lookup_misses = 0
 
         for i, wp in enumerate(waypoints):
             if i == 0:
@@ -348,7 +414,8 @@ class WaypointCalculator:
                     'time': current_time,
                     'altitude_ft': 0,
                     'phase': 'departure',
-                    'cumulative_distance_km': 0
+                    'cumulative_distance_km': 0,
+                    'time_source': 'departure'
                 })
             else:
                 # 이전 웨이포인트에서 현재 웨이포인트까지의 거리
@@ -358,13 +425,43 @@ class WaypointCalculator:
                     wp['lat'], wp['lon']
                 )
 
-                # 시간 계산
-                segment_result = self.calculate_segment_time(
-                    segment_dist, current_altitude_ft, cruise_altitude_ft
-                )
+                # 1순위: 관제시스템 실측 데이터 룩업 테이블
+                lookup_time_minutes = None
+                time_source = 'calculated'
 
-                current_time += timedelta(seconds=segment_result['time_seconds'])
-                current_altitude_ft = segment_result['final_altitude_ft']
+                if use_lookup:
+                    lookup_time_minutes = get_fix_travel_time(prev_wp['name'], wp['name'])
+
+                if lookup_time_minutes is not None:
+                    # 룩업 테이블 히트: 실측 데이터 사용
+                    segment_time_seconds = lookup_time_minutes * 60
+                    time_source = 'lookup'
+                    lookup_hits += 1
+
+                    # 고도는 거리 기반으로 추정
+                    segment_result = self.calculate_segment_time(
+                        segment_dist, current_altitude_ft, cruise_altitude_ft
+                    )
+                    current_altitude_ft = segment_result['final_altitude_ft']
+                    phase = segment_result['phase']
+                    details = {
+                        **segment_result['details'],
+                        'lookup_time_minutes': lookup_time_minutes,
+                        'calculated_time_minutes': segment_result['time_seconds'] / 60,
+                        'time_diff_minutes': lookup_time_minutes - (segment_result['time_seconds'] / 60)
+                    }
+                else:
+                    # 2순위: 기존 거리/속도 기반 계산 (폴백)
+                    segment_result = self.calculate_segment_time(
+                        segment_dist, current_altitude_ft, cruise_altitude_ft
+                    )
+                    segment_time_seconds = segment_result['time_seconds']
+                    current_altitude_ft = segment_result['final_altitude_ft']
+                    phase = segment_result['phase']
+                    details = segment_result['details']
+                    lookup_misses += 1
+
+                current_time += timedelta(seconds=segment_time_seconds)
 
                 # 누적 거리
                 cumulative_dist = (
@@ -378,12 +475,22 @@ class WaypointCalculator:
                     'lon': wp['lon'],
                     'time': current_time,
                     'altitude_ft': current_altitude_ft,
-                    'phase': segment_result['phase'],
+                    'phase': phase,
                     'segment_distance_km': segment_dist,
-                    'segment_time_minutes': segment_result['time_seconds'] / 60,
+                    'segment_time_minutes': segment_time_seconds / 60,
                     'cumulative_distance_km': cumulative_dist,
-                    'details': segment_result['details']
+                    'time_source': time_source,
+                    'details': details
                 })
+
+        # 룩업 통계 로깅
+        if use_lookup and (lookup_hits > 0 or lookup_misses > 0):
+            total = lookup_hits + lookup_misses
+            hit_rate = (lookup_hits / total * 100) if total > 0 else 0
+            logger.debug(
+                f"FIX 룩업 통계: {lookup_hits}/{total} 히트 ({hit_rate:.1f}%), "
+                f"{lookup_misses}개 폴백 계산"
+            )
 
         return results
 

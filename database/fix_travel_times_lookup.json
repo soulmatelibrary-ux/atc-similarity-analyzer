@@ -1,0 +1,718 @@
+{
+  "RUGMA": {
+    "ANROD": 31.0,
+    "PAPLU": 10.0,
+    "TOSAN": 4.7
+  },
+  "ANROD": {
+    "ENGOT": 1.6,
+    "RKPK": 6.5,
+    "POVEM": 5.0
+  },
+  "ENGOT": {
+    "SARAM": 3.1,
+    "POVOR": 9.3,
+    "ANROD": 2.0
+  },
+  "SARAM": {
+    "MASTA": 3.3,
+    "ENGOT": 3.0,
+    "RKPS": 5.0
+  },
+  "MASTA": {
+    "RKTN": 4.2,
+    "SARAM": 4.0,
+    "ANKUS": 3.6,
+    "RKPK": 5.6,
+    "TGU": 4.0,
+    "RKPS": 23.0
+  },
+  "LAMEN": {
+    "SADLI": 6.5
+  },
+  "SADLI": {
+    "IKEDO": 4.5,
+    "LAMEN": 7.7,
+    "IKEKA": 38.0
+  },
+  "IKEDO": {
+    "ELGEP": 2.0,
+    "KANKA": 2.0
+  },
+  "ELGEP": {
+    "BEDAR": 4.0,
+    "NIRAT": 2.0
+  },
+  "RKTN": {
+    "MASTA": 4.0,
+    "LAPAL": 4.0,
+    "TGU": 1.0,
+    "BITUX": 10.7
+  },
+  "POVOR": {
+    "UPGOS": 5.0
+  },
+  "UPGOS": {
+    "BILUM": 3.0,
+    "RKPC": 10.4,
+    "RKPD": 21.0
+  },
+  "BILUM": {
+    "BEPKO": 1.6,
+    "MELES": 19.0
+  },
+  "BEPKO": {
+    "CJU": 4.0
+  },
+  "CJU": {
+    "PANSI": 5.0,
+    "LOSNI": 2.0,
+    "OMKIM": 1.5,
+    "TOSAN": 4.0
+  },
+  "PANSI": {
+    "DOMKO": 5.2
+  },
+  "DOMKO": {
+    "PONIK": 4.7
+  },
+  "PONIK": {
+    "SADLI": 6.0,
+    "IKEDO": 3.0
+  },
+  "RKSI": {
+    "EGOBA": 6.0,
+    "BOPTA": 6.3,
+    "NOPIK": 6.9,
+    "OSPOT": 8.8,
+    "SEL": 2.0,
+    "BINIL": 12.0
+  },
+  "EGOBA": {
+    "KARBU": 2.0,
+    "SOT": 5.7,
+    "MONSI": 6.0,
+    "SEL": 2.0
+  },
+  "KARBU": {
+    "TORUS": 3.0,
+    "RKSM": 14.0,
+    "EGOBA": 2.4,
+    "RKSG": 7.0,
+    "RKSI": 9.0,
+    "KAE": 4.0
+  },
+  "TORUS": {
+    "BIKSI": 3.0,
+    "KARBU": 3.5
+  },
+  "BIKSI": {
+    "KAE": 1.0,
+    "TORUS": 4.1,
+    "RKNY": 3.0,
+    "KARBU": 7.0
+  },
+  "KAE": {
+    "PILIT": 4.0,
+    "LESBU": 6.5,
+    "BIKSI": 1.0,
+    "KARBU": 8.0,
+    "RKNY": 7.5,
+    "SEL": 6.0
+  },
+  "PILIT": {
+    "ESNEG": 4.0,
+    "KAE": 13.0,
+    "NOBUT": 8.0
+  },
+  "ESNEG": {
+    "AGSUS": 6.5
+  },
+  "AGSUS": {
+    "LANAT": 6.4
+  },
+  "BOPTA": {
+    "MOXID": 3.3
+  },
+  "MOXID": {
+    "BEDES": 2.3
+  },
+  "BEDES": {
+    "ELPOS": 2.3
+  },
+  "ELPOS": {
+    "MANGI": 4.0,
+    "KUZ": 2.0,
+    "RINBO": 2.0
+  },
+  "MANGI": {
+    "DALSU": 3.7,
+    "RKJJ": 7.0
+  },
+  "DALSU": {
+    "NULDI": 6.8,
+    "KWA": 1.0
+  },
+  "NULDI": {
+    "DOTOL": 1.7
+  },
+  "DOTOL": {
+    "KIDOS": 4.0,
+    "RKPC": 8.0
+  },
+  "KIDOS": {
+    "REMOS": 4.0,
+    "CJU": 4.4
+  },
+  "REMOS": {
+    "PANSI": 4.0
+  },
+  "KANKA": {
+    "BONSO": 10.4
+  },
+  "BONSO": {
+    "MUGUS": 5.0
+  },
+  "ONIKU": {
+    "NIRAT": 4.0
+  },
+  "NIRAT": {
+    "PONIK": 1.2,
+    "SAMLO": 4.7
+  },
+  "PAPLU": {
+    "BILUM": 2.0,
+    "AKPON": 2.3,
+    "MELES": 21.0
+  },
+  "MELES": {
+    "GUKDO": 12.0,
+    "RINBO": 4.5,
+    "OPEDA": 4.0
+  },
+  "GUKDO": {
+    "RKSI": 11.0,
+    "RKSS": 10.0,
+    "KAKSO": 1.7
+  },
+  "SAMLO": {
+    "SOSDO": 4.0
+  },
+  "SOSDO": {
+    "CJU": 3.0,
+    "OMKIM": 2.2,
+    "RKPC": 6.0
+  },
+  "LOSNI": {
+    "GUKSU": 2.6
+  },
+  "GUKSU": {
+    "KAMIT": 3.0
+  },
+  "KAMIT": {
+    "SAMUL": 8.1
+  },
+  "SAMUL": {
+    "MAKSA": 3.7,
+    "KWA": 1.0,
+    "TEDAN": 5.4
+  },
+  "MAKSA": {
+    "ATASO": 3.4
+  },
+  "ATASO": {
+    "PEBRI": 4.5
+  },
+  "PEBRI": {
+    "GUNKU": 2.2
+  },
+  "GUNKU": {
+    "OLMEN": 1.0,
+    "OSPOT": 3.0
+  },
+  "OLMEN": {
+    "RKSI": 8.0,
+    "RKSS": 10.0,
+    "OSPOT": 3.0,
+    "RKTU": 5.0,
+    "SOT": 6.2,
+    "RKNW": 10.0,
+    "ENTEL": 8.0,
+    "POSAN": 3.0
+  },
+  "SAPRA": {
+    "BULGA": 7.0
+  },
+  "BULGA": {
+    "KPO": 3.0,
+    "SAPRA": 6.9
+  },
+  "KPO": {
+    "ELAPI": 6.0,
+    "BULGA": 2.6,
+    "LOSTO": 10.9,
+    "RKPU": 13.8,
+    "RKTH": 2.0,
+    "LAPAL": 7.0
+  },
+  "ELAPI": {
+    "CUN": 5.0
+  },
+  "CUN": {
+    "BIGOB": 2.0
+  },
+  "BIGOB": {
+    "BASEM": 2.0,
+    "RKTU": 8.0
+  },
+  "BASEM": {
+    "ENSAL": 1.3,
+    "RKTU": 6.0
+  },
+  "ENSAL": {
+    "GUKDO": 1.7,
+    "RKSO": 8.0
+  },
+  "OMKIM": {
+    "TOSAN": 2.0,
+    "CJU": 1.7,
+    "PAPLU": 4.0
+  },
+  "TOSAN": {
+    "RUGMA": 5.7,
+    "OMKIM": 2.0,
+    "CJU": 4.0
+  },
+  "ATOTI": {
+    "TESIM": 13.8
+  },
+  "TESIM": {
+    "ELGEP": 2.0
+  },
+  "NOPIK": {
+    "BINIL": 4.0
+  },
+  "BINIL": {
+    "ANSIM": 3.6
+  },
+  "ANSIM": {
+    "NOGON": 3.6
+  },
+  "NOGON": {
+    "OLBIM": 3.2
+  },
+  "OLBIM": {
+    "AGAVO": 2.0
+  },
+  "RKTH": {
+    "LAPAL": 4.0,
+    "APARU": 13.3,
+    "PSN": 10.0,
+    "ELAPI": 6.0
+  },
+  "LAPAL": {
+    "TGU": 6.0,
+    "RKTH": 4.5,
+    "KPO": 3.3,
+    "RKPU": 5.5,
+    "RKTN": 9.0
+  },
+  "TGU": {
+    "OPEDA": 11.0,
+    "LAPAL": 4.6,
+    "BITUX": 7.0,
+    "MASTA": 4.0,
+    "RKTN": 2.0,
+    "RKPC": 20.0
+  },
+  "OPEDA": {
+    "MELES": 4.0,
+    "TGU": 11.7
+  },
+  "RINBO": {
+    "ELPOS": 2.0,
+    "MELES": 4.5,
+    "LINTA": 4.6,
+    "RKJK": 8.0,
+    "ENTEL": 10.1
+  },
+  "AKPON": {
+    "NISAV": 6.8
+  },
+  "NISAV": {
+    "ANROD": 5.4,
+    "RKJY": 12.7,
+    "RKPS": 15.0
+  },
+  "KUZ": {
+    "ELPOS": 2.0,
+    "SEL": 7.0
+  },
+  "AGAVO": {
+    "RILRO": 1.6,
+    "IKEKA": 3.5
+  },
+  "RILRO": {
+    "GONAV": 1.0,
+    "DALPO": 2.0
+  },
+  "GONAV": {
+    "BODOL": 3.4
+  },
+  "BODOL": {
+    "REBIT": 4.6
+  },
+  "REBIT": {
+    "BELTU": 1.7,
+    "RKSI": 9.0,
+    "RKSS": 20.0
+  },
+  "BELTU": {
+    "BOGAN": 4.3,
+    "RKSI": 6.0
+  },
+  "BOGAN": {
+    "MONSI": 2.0,
+    "RKSS": 8.0
+  },
+  "MONSI": {
+    "POLEG": 1.0,
+    "BULTI": 7.0,
+    "SOT": 1.4
+  },
+  "POLEG": {
+    "EGOBA": 3.0
+  },
+  "INVOK": {
+    "PSN": 4.0,
+    "RKPK": 40.0
+  },
+  "PSN": {
+    "KALOD": 5.0,
+    "RKPK": 4.3,
+    "OLMUD": 1.5,
+    "APARU": 6.4,
+    "KALEK": 13.3,
+    "APELA": 7.0,
+    "OMOTU": 2.0
+  },
+  "KALOD": {
+    "TGU": 3.5,
+    "RKTN": 13.0
+  },
+  "BITUX": {
+    "TEBEX": 3.0,
+    "TGU": 6.8,
+    "MAKDU": 4.4
+  },
+  "TEBEX": {
+    "BASEM": 3.4
+  },
+  "OSPOT": {
+    "VASLI": 2.0,
+    "RKTU": 1.7,
+    "RKSM": 12.5,
+    "RKSW": 11.0
+  },
+  "VASLI": {
+    "MAKDU": 4.0,
+    "OSPOT": 3.0,
+    "RKSM": 12.0
+  },
+  "MAKDU": {
+    "BITUX": 2.5,
+    "VASLI": 7.3,
+    "RKTU": 7.0
+  },
+  "ANKUS": {
+    "OMOTU": 1.0
+  },
+  "OMOTU": {
+    "BESNA": 5.0,
+    "TOPAX": 5.0
+  },
+  "RKPC": {
+    "KAMIT": 8.0,
+    "AKPON": 7.8,
+    "MAKET": 7.0,
+    "PANSI": 6.0,
+    "IPDAS": 12.0,
+    "TAMNA": 9.0
+  },
+  "RKSS": {
+    "EGOBA": 3.4,
+    "OSPOT": 11.0,
+    "BULTI": 8.0,
+    "NOPIK": 11.0,
+    "GOGET": 3.0
+  },
+  "RKPK": {
+    "KALOD": 3.0,
+    "ENGOT": 5.6,
+    "APARU": 8.0,
+    "BESNA": 13.1,
+    "PSN": 1.0,
+    "SAPDI": 5.0
+  },
+  "BULTI": {
+    "MEKIL": 2.0
+  },
+  "MEKIL": {
+    "GONAX": 1.3
+  },
+  "GONAX": {
+    "BEDES": 2.7
+  },
+  "KAKSO": {
+    "KALMA": 2.8,
+    "RKSO": 4.0
+  },
+  "KALMA": {
+    "SEL": 1.6
+  },
+  "SEL": {
+    "GOGET": 3.0,
+    "EGOBA": 3.0,
+    "KAE": 12.0,
+    "RKSS": 2.0,
+    "KUZ": 6.0
+  },
+  "GOGET": {
+    "NOPIK": 5.8
+  },
+  "RKSM": {
+    "KARBU": 7.7,
+    "ENTEL": 10.0,
+    "VASLI": 11.0,
+    "OLMEN": 17.0
+  },
+  "LESBU": {
+    "SEL": 20.0,
+    "KAE": 6.0,
+    "UGOVI": 1.0
+  },
+  "RKPU": {
+    "APARU": 2.0,
+    "KPO": 10.0
+  },
+  "APARU": {
+    "PSN": 4.2,
+    "RKPU": 3.0,
+    "KPO": 21.8,
+    "RKTH": 7.0
+  },
+  "OLMUD": {
+    "ENGOT": 4.0
+  },
+  "POVEM": {
+    "PSN": 2.6
+  },
+  "RKTL": {
+    "LOSTO": 11.7,
+    "NOBUT": 9.0
+  },
+  "LOSTO": {
+    "KPO": 10.3,
+    "RKTL": 12.7
+  },
+  "POTET": {
+    "BIGIT": 1.0,
+    "ONIKU": 1.0
+  },
+  "BIGIT": {
+    "ESBIS": 2.0
+  },
+  "ESBIS": {
+    "LESKA": 2.0,
+    "BIGIT": 2.0
+  },
+  "LESKA": {
+    "ESBIS": 3.0
+  },
+  "ENTEL": {
+    "RINBO": 9.9,
+    "RKTA": 12.6,
+    "OLMEN": 5.0,
+    "RKJK": 14.0
+  },
+  "LINTA": {
+    "KWA": 5.5,
+    "RINBO": 5.0,
+    "RKJK": 7.0
+  },
+  "KWA": {
+    "IPDAS": 9.5,
+    "LINTA": 6.3,
+    "SAMUL": 1.0
+  },
+  "IPDAS": {
+    "RKPC": 8.0,
+    "KWA": 14.0
+  },
+  "MAKET": {
+    "GOSBO": 5.0,
+    "ATINA": 3.0
+  },
+  "GOSBO": {
+    "TOPAX": 7.0,
+    "MAKET": 6.0
+  },
+  "TOPAX": {
+    "SARAM": 4.0,
+    "GOSBO": 9.0
+  },
+  "KALEK": {
+    "PSN": 36.0,
+    "RKPK": 40.0
+  },
+  "RKTA": {
+    "ENTEL": 12.2,
+    "OLMEN": 24.0
+  },
+  "RKPS": {
+    "POVOR": 10.0,
+    "SARAM": 3.0,
+    "RIMPO": 8.0,
+    "MASTA": 22.0
+  },
+  "RKPD": {
+    "AKPON": 16.0
+  },
+  "RKJY": {
+    "POVOR": 8.1,
+    "ANUBA": 4.0,
+    "TEDAN": 3.5
+  },
+  "RKJK": {
+    "RINBO": 7.0,
+    "MANGI": 3.0,
+    "ENTEL": 6.0,
+    "OPEDA": 13.0,
+    "LINTA": 5.5
+  },
+  "IKEKA": {
+    "AGAVO": 5.0
+  },
+  "APELA": {
+    "PSN": 12.0
+  },
+  "ANUBA": {
+    "TEDAN": 3.0,
+    "SAPDI": 10.0
+  },
+  "TEDAN": {
+    "SAMUL": 4.8,
+    "RKJY": 7.0,
+    "ANUBA": 3.0
+  },
+  "RKTU": {
+    "BULTI": 5.0,
+    "MAKDU": 3.0,
+    "ENTEL": 5.0,
+    "MEKIL": 5.0,
+    "GUKDO": 3.0
+  },
+  "RKNW": {
+    "KARBU": 2.0
+  },
+  "SOT": {
+    "BULTI": 3.0,
+    "EGOBA": 4.7,
+    "RKSO": 1.0,
+    "OSPOT": 3.0
+  },
+  "RKNY": {
+    "BIKSI": 4.0,
+    "KAE": 8.0
+  },
+  "ATINA": {
+    "MANOL": 2.0
+  },
+  "MANOL": {
+    "CJU": 4.0
+  },
+  "SAPDI": {
+    "ANUBA": 12.0,
+    "KWA": 20.0
+  },
+  "DALPO": {
+    "NONOS": 3.0
+  },
+  "NONOS": {
+    "BIDRI": 4.0
+  },
+  "BIDRI": {
+    "DANPA": 8.0
+  },
+  "DANPA": {
+    "PALSA": 15.0
+  },
+  "PALSA": {
+    "TOLIS": 2.0
+  },
+  "TOLIS": {
+    "LIMDI": 13.0
+  },
+  "LIMDI": {
+    "RKPC": 6.0
+  },
+  "NOBUT": {
+    "PILIT": 8.0,
+    "RKTL": 10.0
+  },
+  "RKSO": {
+    "OSPOT": 3.0,
+    "OLMEN": 7.0
+  },
+  "DANJU": {
+    "LANAT": 1.0
+  },
+  "TAMNA": {
+    "SAMDO": 11.0,
+    "RKPC": 9.0
+  },
+  "RKSW": {
+    "OSPOT": 9.0
+  },
+  "RUNIT": {
+    "RKPS": 1.0
+  },
+  "KWJ": {
+    "RKJJ": 24.5
+  },
+  "RKJJ": {
+    "KWJ": 40.0,
+    "MAKSA": 3.0
+  },
+  "RKJB": {
+    "KWA": 12.0
+  },
+  "SAMDO": {
+    "TAMNA": 10.0
+  },
+  "ANDOL": {
+    "SABET": 2.0
+  },
+  "SABET": {
+    "TENAS": 7.0,
+    "ANDOL": 2.5
+  },
+  "TENAS": {
+    "BUSKO": 10.0,
+    "SABET": 6.5
+  },
+  "BUSKO": {
+    "UGOVI": 3.0,
+    "TENAS": 8.0
+  },
+  "UGOVI": {
+    "LESBU": 1.0,
+    "BUSKO": 2.5
+  },
+  "POSAN": {
+    "KAKSO": 3.0
+  },
+  "RKSG": {
+    "KARBU": 3.0
+  }
+}
