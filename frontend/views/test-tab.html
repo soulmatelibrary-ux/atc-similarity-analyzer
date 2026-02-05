@@ -147,9 +147,230 @@
             </div>
         </div>
     </div>
+
+    <!-- FIX 이동시간 관리 섹션 -->
+    <div class="fix-travel-times-section card" style="margin-top: 30px;">
+        <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h3 style="margin: 0;"><i class="fas fa-clock"></i> FIX 이동시간 관리</h3>
+            <div class="header-actions" style="display: flex; gap: 8px;">
+                <button id="fix-times-toggle-btn" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white; border: none;">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        <div id="fix-times-content" class="card-body" style="display: none;">
+            <!-- 업로드 및 액션 버튼 -->
+            <div class="fix-times-toolbar" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="upload-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="file" id="fix-times-file-input" accept=".txt" style="display: none;">
+                    <button id="fix-times-upload-btn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-upload"></i> TXT 업로드
+                    </button>
+                    <select id="fix-times-method" class="form-control" style="width: auto; padding: 6px 10px; font-size: 13px;">
+                        <option value="average">평균값</option>
+                        <option value="median">중앙값</option>
+                        <option value="min">최소값</option>
+                        <option value="max">최대값</option>
+                    </select>
+                </div>
+                <div class="action-group" style="display: flex; gap: 8px; margin-left: auto;">
+                    <button id="fix-times-refresh-btn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-sync-alt"></i> 새로고침
+                    </button>
+                    <button id="fix-times-download-btn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-download"></i> JSON 다운로드
+                    </button>
+                    <button id="fix-times-add-btn" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> 추가
+                    </button>
+                </div>
+            </div>
+
+            <!-- 상태 메시지 -->
+            <div id="fix-times-status" class="fix-times-status" style="display: none; margin-bottom: 15px; padding: 10px 15px; border-radius: 6px;"></div>
+
+            <!-- 검색/필터 -->
+            <div class="fix-times-filter" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="fix-times-search" class="form-control" placeholder="FIX 검색 (예: RUGMA, ANROD)" style="max-width: 300px;">
+                <span id="fix-times-count" style="display: flex; align-items: center; color: #666; font-size: 13px;">총 0개</span>
+            </div>
+
+            <!-- 데이터 테이블 -->
+            <div class="fix-times-table-wrapper" style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                <table class="table table-sm table-hover" id="fix-times-table" style="margin-bottom: 0;">
+                    <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
+                        <tr>
+                            <th style="width: 30%;">출발 FIX</th>
+                            <th style="width: 30%;">도착 FIX</th>
+                            <th style="width: 25%;">이동시간 (분)</th>
+                            <th style="width: 15%; text-align: center;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fix-times-tbody">
+                        <tr class="empty-row">
+                            <td colspan="4" style="text-align: center; color: #999; padding: 40px;">
+                                <i class="fas fa-database" style="font-size: 2em; margin-bottom: 10px; display: block;"></i>
+                                데이터를 불러오려면 '새로고침'을 클릭하거나<br>TXT 파일을 업로드하세요.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 통계 정보 -->
+            <div id="fix-times-stats" class="fix-times-stats" style="display: none; margin-top: 15px; padding: 15px; background: #e8f4fd; border-radius: 8px; font-size: 13px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- FIX 이동시간 추가/수정 모달 -->
+    <div id="fix-time-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h4 id="fix-time-modal-title">FIX 이동시간 추가</h4>
+                <button class="close-modal" onclick="closeFixTimeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="fix-time-from">출발 FIX</label>
+                    <input type="text" id="fix-time-from" class="form-control" placeholder="예: RUGMA" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="fix-time-to">도착 FIX</label>
+                    <input type="text" id="fix-time-to" class="form-control" placeholder="예: ANROD" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="fix-time-minutes">이동시간 (분)</label>
+                    <input type="number" id="fix-time-minutes" class="form-control" placeholder="예: 26.0" step="0.1" min="0">
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeFixTimeModal()">취소</button>
+                <button id="fix-time-save-btn" class="btn btn-primary">저장</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
+    /* FIX 이동시간 관리 스타일 */
+    .fix-travel-times-section {
+        margin-top: 30px;
+    }
+
+    .fix-times-status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .fix-times-status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .fix-times-status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    #fix-times-table th {
+        font-weight: 600;
+        font-size: 13px;
+        padding: 12px 10px;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    #fix-times-table td {
+        padding: 10px;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+
+    #fix-times-table tbody tr:hover {
+        background: #f5f5f5;
+    }
+
+    #fix-times-table .edit-input {
+        width: 80px;
+        padding: 4px 8px;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .fix-times-stats {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .fix-times-stats .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .fix-times-stats .stat-item i {
+        color: #667eea;
+    }
+
+    /* 모달 스타일 */
+    #fix-time-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    #fix-time-modal .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    #fix-time-modal .modal-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #fix-time-modal .modal-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    #fix-time-modal .modal-body {
+        padding: 20px;
+    }
+
+    #fix-time-modal .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+    }
+
+    #fix-time-modal .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #999;
+    }
+
+    #fix-time-modal .close-modal:hover {
+        color: #333;
+    }
     .test-tab-container {
         padding: 20px;
         width: 100%;

@@ -20,6 +20,11 @@ DEFAULT_ADMIN_PASSWORD_HASH = 'pbkdf2:sha256:600000$uiWpD9I83Wo77Ipu$543872c7ae6
 DEFAULT_USER_USERNAME = 'parkeungi21'
 DEFAULT_USER_EMAIL = 'parkeungi21@korea.kr'
 DEFAULT_USER_PASSWORD_HASH = 'pbkdf2:sha256:600000$uiWpD9I83Wo77Ipu$543872c7ae62f395945c804303c91d3a0715f53dfdab62d37e3fcb9c3eabfcda'
+
+AIRPORT_ADMIN_USERNAME = 'airport_admin'
+AIRPORT_ADMIN_EMAIL = 'admin@airport.co.kr'
+AIRPORT_ADMIN_PASSWORD_HASH = 'scrypt:32768:8:1$fw7UVLYym90tQQpW$6b6c55970b2707f1c2107692633bd0994f6dc5b7201c48de1bbcf15631e9a3e7ce530751943be0307c3c1ee53b0a6da0356c16be49dcd21a5cc92c263d3aa1db'
+
 FULL_ACCESS_TABS = json.dumps(["*"])
 
 
@@ -122,6 +127,16 @@ class DatabaseManager:
             DEFAULT_USER_USERNAME,
             DEFAULT_USER_EMAIL,
             DEFAULT_USER_PASSWORD_HASH,
+            FULL_ACCESS_TABS
+        ))
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO admin_users (username, email, password_hash, role, allowed_tabs, is_active)
+            VALUES (?, ?, ?, 'admin', ?, 1)
+        """, (
+            AIRPORT_ADMIN_USERNAME,
+            AIRPORT_ADMIN_EMAIL,
+            AIRPORT_ADMIN_PASSWORD_HASH,
             FULL_ACCESS_TABS
         ))
 

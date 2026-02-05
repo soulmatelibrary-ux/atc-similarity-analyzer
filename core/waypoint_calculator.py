@@ -93,6 +93,16 @@ def _get_fix_travel_lookup():
     return _FIX_TRAVEL_LOOKUP
 
 
+def _reload_fix_travel_lookup():
+    """
+    FIX 이동시간 룩업 테이블 캐시를 강제로 다시 로드
+    JSON 파일이 업데이트된 후 호출하여 메모리 캐시 갱신
+    """
+    global _FIX_TRAVEL_LOOKUP
+    _FIX_TRAVEL_LOOKUP = None
+    return _get_fix_travel_lookup()
+
+
 def get_fix_travel_time(from_fix, to_fix):
     """
     두 FIX 간의 실측 기반 이동시간 조회

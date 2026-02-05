@@ -3205,6 +3205,344 @@ def delete_database():
 
 
 # ============================================================================
+# FIX 이동시간 관리 API
+# ============================================================================
+
+# FIX 이동시간 JSON 파일 경로
+FIX_TRAVEL_TIMES_PATH = os.path.join(os.path.dirname(__file__), '..', 'database', 'fix_travel_times_lookup.json')
+
+
+@app.route('/api/fix-travel-times', methods=['GET'])
+def get_fix_travel_times():
+    """FIX 이동시간 데이터 조회"""
+    try:
+        from core.fix_time_converter import load_json_file, flatten_fix_times
+
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+
+        if not os.path.exists(abs_path):
+            return jsonify({
+                'status': 'success',
+                'data': [],
+                'message': 'FIX 이동시간 데이터가 없습니다.'
+            })
+
+        data = load_json_file(abs_path)
+        if data is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일 로드 실패'
+            }), 500
+
+        # 플랫 리스트로 변환 (UI 테이블용)
+        flat_data = flatten_fix_times(data)
+
+        return jsonify({
+            'status': 'success',
+            'data': flat_data,
+            'total_count': len(flat_data)
+        })
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 조회 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/fix-travel-times/upload', methods=['POST'])
+def upload_fix_travel_times():
+    """fixtime.txt 업로드 및 JSON 변환"""
+    try:
+        from core.fix_time_converter import (
+            convert_fixtime_to_json,
+            get_conversion_statistics,
+            save_json_file,
+            flatten_fix_times
+        )
+
+        if 'file' not in request.files:
+            return jsonify({
+                'status': 'error',
+                'message': '파일이 업로드되지 않았습니다.'
+            }), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error',
+                'message': '파일이 선택되지 않았습니다.'
+            }), 400
+
+        # 집계 방법 (기본값: average)
+        method = request.form.get('method', 'average')
+        if method not in ['average', 'median', 'min', 'max']:
+            method = 'average'
+
+        # 파일 내용 읽기
+        file_content = file.read().decode('utf-8')
+
+        # 변환 통계
+        stats = get_conversion_statistics(file_content)
+
+        # JSON 변환
+        json_data = convert_fixtime_to_json(file_content, method)
+
+        # 파일 저장
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+        if not save_json_file(json_data, abs_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일 저장 실패'
+            }), 500
+
+        # 메모리 캐시 갱신 (waypoint_calculator의 캐시)
+        try:
+            from core.waypoint_calculator import _reload_fix_travel_lookup
+            _reload_fix_travel_lookup()
+        except:
+            pass  # 캐시 갱신 실패해도 무시
+
+        # 플랫 리스트로 변환
+        flat_data = flatten_fix_times(json_data)
+
+        logger.info(f"FIX 이동시간 데이터 업로드 완료: {stats['total_fix_pairs']} pairs")
+
+        return jsonify({
+            'status': 'success',
+            'message': f"변환 완료: {stats['total_fix_pairs']}개 FIX 쌍",
+            'data': flat_data,
+            'statistics': stats,
+            'method': method
+        })
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 업로드 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/fix-travel-times', methods=['PUT'])
+def update_fix_travel_times():
+    """FIX 이동시간 데이터 수정/저장"""
+    try:
+        from core.fix_time_converter import (
+            load_json_file,
+            save_json_file,
+            unflatten_fix_times,
+            flatten_fix_times
+        )
+
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': '데이터가 없습니다.'
+            }), 400
+
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+
+        # 플랫 리스트를 중첩 딕셔너리로 변환
+        if isinstance(data, list):
+            json_data = unflatten_fix_times(data)
+        else:
+            json_data = data
+
+        # 파일 저장
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+        if not save_json_file(json_data, abs_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일 저장 실패'
+            }), 500
+
+        # 메모리 캐시 갱신
+        try:
+            from core.waypoint_calculator import _reload_fix_travel_lookup
+            _reload_fix_travel_lookup()
+        except:
+            pass
+
+        # 응답용 플랫 데이터
+        flat_data = flatten_fix_times(json_data)
+
+        logger.info(f"FIX 이동시간 데이터 저장 완료: {len(flat_data)} pairs")
+
+        return jsonify({
+            'status': 'success',
+            'message': f"저장 완료: {len(flat_data)}개 FIX 쌍",
+            'data': flat_data,
+            'total_count': len(flat_data)
+        })
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 저장 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/fix-travel-times/item', methods=['PUT'])
+def update_fix_travel_time_item():
+    """단일 FIX 쌍 이동시간 수정"""
+    try:
+        from core.fix_time_converter import (
+            load_json_file,
+            save_json_file,
+            update_fix_time,
+            flatten_fix_times
+        )
+
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': '데이터가 없습니다.'
+            }), 400
+
+        from_fix = data.get('from_fix', '').strip().upper()
+        to_fix = data.get('to_fix', '').strip().upper()
+        time_minutes = data.get('time_minutes')
+
+        if not from_fix or not to_fix or time_minutes is None:
+            return jsonify({
+                'status': 'error',
+                'message': '필수 필드가 누락되었습니다. (from_fix, to_fix, time_minutes)'
+            }), 400
+
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+
+        # 기존 데이터 로드
+        json_data = load_json_file(abs_path) or {}
+
+        # 수정
+        json_data = update_fix_time(json_data, from_fix, to_fix, float(time_minutes))
+
+        # 저장
+        if not save_json_file(json_data, abs_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일 저장 실패'
+            }), 500
+
+        # 캐시 갱신
+        try:
+            from core.waypoint_calculator import _reload_fix_travel_lookup
+            _reload_fix_travel_lookup()
+        except:
+            pass
+
+        logger.info(f"FIX 이동시간 수정: {from_fix} → {to_fix} = {time_minutes}분")
+
+        return jsonify({
+            'status': 'success',
+            'message': f"{from_fix} → {to_fix} = {time_minutes}분 저장 완료"
+        })
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 수정 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/fix-travel-times/item', methods=['DELETE'])
+def delete_fix_travel_time_item():
+    """단일 FIX 쌍 삭제"""
+    try:
+        from core.fix_time_converter import (
+            load_json_file,
+            save_json_file,
+            delete_fix_time
+        )
+
+        from_fix = request.args.get('from_fix', '').strip().upper()
+        to_fix = request.args.get('to_fix', '').strip().upper()
+
+        if not from_fix or not to_fix:
+            return jsonify({
+                'status': 'error',
+                'message': '필수 파라미터가 누락되었습니다. (from_fix, to_fix)'
+            }), 400
+
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+
+        # 기존 데이터 로드
+        json_data = load_json_file(abs_path)
+        if json_data is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일이 없습니다.'
+            }), 404
+
+        # 삭제
+        json_data = delete_fix_time(json_data, from_fix, to_fix)
+
+        # 저장
+        if not save_json_file(json_data, abs_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일 저장 실패'
+            }), 500
+
+        # 캐시 갱신
+        try:
+            from core.waypoint_calculator import _reload_fix_travel_lookup
+            _reload_fix_travel_lookup()
+        except:
+            pass
+
+        logger.info(f"FIX 이동시간 삭제: {from_fix} → {to_fix}")
+
+        return jsonify({
+            'status': 'success',
+            'message': f"{from_fix} → {to_fix} 삭제 완료"
+        })
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 삭제 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/fix-travel-times/download', methods=['GET'])
+def download_fix_travel_times():
+    """FIX 이동시간 JSON 파일 다운로드"""
+    try:
+        abs_path = os.path.abspath(FIX_TRAVEL_TIMES_PATH)
+
+        if not os.path.exists(abs_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'JSON 파일이 없습니다.'
+            }), 404
+
+        return send_file(
+            abs_path,
+            mimetype='application/json',
+            as_attachment=True,
+            download_name='fix_travel_times_lookup.json'
+        )
+
+    except Exception as e:
+        logger.error(f"FIX 이동시간 다운로드 오류: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+# ============================================================================
 # Blueprint 등록
 # ============================================================================
 

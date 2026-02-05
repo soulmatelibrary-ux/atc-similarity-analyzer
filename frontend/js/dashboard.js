@@ -184,7 +184,12 @@ async function loadAvailableDates() {
         const data = await response.json();
         if (data.status === 'success' && data.data && Array.isArray(data.data)) {
             dashboardState.availableDates = data.data.sort().reverse(); // 최신 날짜순으로 정렬
-            dashboardState.dateIndex = -1; // 초기값: 전체 날짜
+
+            // 오늘 날짜를 기본값으로 설정
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const todayIndex = dashboardState.availableDates.indexOf(today);
+            dashboardState.dateIndex = todayIndex >= 0 ? todayIndex : 0; // 오늘 날짜가 있으면 선택, 없으면 최신 날짜
+
             updateDashboardDateDisplay();
 
             // 초기 데이터 로드

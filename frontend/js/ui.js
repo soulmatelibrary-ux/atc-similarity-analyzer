@@ -452,6 +452,8 @@ function attachEventListeners() {
                 targetView.style.display = 'flex';
             } else if (targetId === 'period-analysis-view') {
                 targetView.style.display = 'flex';
+                // 기본 날짜 설정: 오늘 기준 이전 7일
+                initializePeriodAnalysisDates();
             } else if (targetId === 'csv-management-view') {
                 targetView.style.display = 'flex';
             } else if (targetId === 'all-flights-view') {
@@ -1130,6 +1132,26 @@ function getHeatmapColor(value, max) {
         return Math.round(startChannel + (endChannel - startChannel) * ratio);
     });
     return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+}
+
+/**
+ * 기간분석 탭 기본 날짜 초기화 (오늘 기준 이전 7일)
+ */
+function initializePeriodAnalysisDates() {
+    const endInput = document.getElementById('period-end-date');
+    const startInput = document.getElementById('period-start-date');
+    if (!startInput || !endInput) return;
+
+    // 이미 값이 설정되어 있으면 건너뜀
+    if (startInput.value && endInput.value) return;
+
+    const today = new Date();
+    const endDate = new Date(today);
+    const startDate = new Date(today);
+    startDate.setDate(endDate.getDate() - 6); // 오늘 포함 7일
+
+    startInput.value = formatDateInput(startDate);
+    endInput.value = formatDateInput(endDate);
 }
 
 function handlePeriodQuickRange(days) {
@@ -3456,6 +3478,9 @@ async function initializeUI() {
 
     // 날짜 범위 초기화 (기본값: 오늘)
     initializeDateRange();
+
+    // 기간분석 탭 날짜 초기화 (오늘 기준 이전 7일)
+    initializePeriodAnalysisDates();
 
     // 사용 가능한 날짜 로드
     await loadAvailableDates();
